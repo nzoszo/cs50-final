@@ -1,0 +1,169 @@
+/* Add some basic styling to the game */
+body 
+{
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* light gray background */
+}
+  
+table 
+{
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px auto; /* center the table */
+}
+
+th, td 
+{
+    border-color: #ddd !important;
+    padding: 10px;
+    text-align: center;
+}
+
+th 
+{
+    background-color: #f7f7f7; /* light gray background */
+}
+
+/* Style the instruction screen to be centered */
+#instruction-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: none;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: 50%;
+    text-align: center;
+    z-index: 100;
+  }
+  
+/* Hide the instruction screen by default */
+#instruction, #game-type {
+    display: inline;
+    font-size: 24px;
+}
+
+#instruction {
+    text-align: left;
+
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+#clip {
+    animation: play-clip 3s linear infinite;
+}
+
+@keyframes play-clip {
+    0% {
+        animation-play-state: running;
+    }
+    100% {
+        animation-play-state: running;
+}
+}
+
+th#playerOne {
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+}
+
+th#playerTwo {
+    border-bottom: 1px solid;
+    border-left: 1px solid;
+}
+
+#playerOneScore {
+    border-right: 1px solid;
+}
+
+.number 
+{
+    position: relative;
+    cursor: pointer; /* change cursor to a hand when hovering over numbers */
+    background-color: #fff; /* white background */
+    border: 1px solid #ccc; /* light gray border */
+    color: goldenrod;
+    padding: 10px;
+    width: 50px; /* set a fixed width for the numbers */
+    height: 50px; /* set a fixed height for the numbers */
+    font-size: 22px;
+    display: inline-block; /* make the numbers inline-block */
+    margin: 10px; /* add some margin between numbers */
+}
+
+.number:hover 
+{
+    background-color: #ccc; /* light gray background on hover */
+}
+
+.number:active 
+{
+    background-color: #aaa; /* darker gray background on click */
+}
+
+/* Style the player scores */
+#playerOne, #playerTwo, #playerOneScore, #playerTwoScore 
+{
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+#playerOne {
+    color: green;
+    border-color: #ddd !important;
+}
+#playerTwo {
+    color: red;
+    border-color: #ddd !important;
+}
+
+
+/* Style the turn display */
+#turnDisplay 
+{
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333; /* dark gray text */
+}
+
+.factor-animation {
+    position: absolute;
+    top: -20px;
+    animation: fadeOut 1.5s forwards;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Size for brand */
+nav .navbar-brand
+{
+    font-size: xx-large;
+}
+
+/* Colors for brand */
+nav .navbar-brand .blue
+{
+    color: #537fbe;
+}
+nav .navbar-brand .gold
+{
+    color: #ffd700;
+}
+nav .navbar-brand .purple
+{
+    color: #800080 ;
+}

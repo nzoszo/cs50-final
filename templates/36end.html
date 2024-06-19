@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Good Luck
+{% endblock %}
+
+{% block main %}
+    <div>{{ winner }} wins by {{ difference }} points!</div>
+    <div>Player One: {{ playerOneScore }} points</div>
+    <div>Player Two: {{ playerTwoScore }} points</div>
+{% endblock %}

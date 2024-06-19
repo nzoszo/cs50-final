@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    36
+{% endblock %}
+
+{% block main %}
+    <!-- Create a div element to hold the instruction screen -->
+    <div id="instruction-screen">
+        <!-- Add your instruction text or content here -->
+        <div id="instruction">How To Play</div>
+        <div id="game-type">Game Type: Take Turns</div>
+
+        <h3 id="instruction-goal">Outsmart your opponent and gain more points than them.</h3>
+        <ul>
+            <li>Players take turns picking numbers from 6x6 grid.</li>
+            <li>When a player picks </li>
+        </ul>
+        <!-- <p>Players take turns picking numbers from the 6x6 
+            grid with the aim of having the highest number of points at the end. 
+            When a player picks a number, that number is added to the player's points 
+            and is removed from the grid. Any factors of that number, however, will be 
+            added to the opposing player's points and also be removed from the grid.</p>
+        <p>Player 1's turn is green, and Player 2's turn is red.</p> -->
+        <video id="instruction-clip" width="100%" height="60%" autoplay loop muted>
+            <source src="../static/instruction-clip.mp4" type="video/mp4">
+            Your broswer does not support the video tag.
+        </video>
+        <!-- Add a button to start the game -->
+        <button id="start-game">Start Game</button>
+    </div>
+
+    <div id="turnDisplay">It's <span id="playerTurn" style="color: green;">Player 1's</span> turn</div>
+
+    <table>
+        {% for i in range(6) %}
+          <tr>
+            {% for j in range(6) %}
+              <td class="number" data-value="{{ (i * 6) + j + 1 }}">{{ (i * 6) + j + 1 }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+    </table>
+
+    <table id="t-chart">
+        <tr>
+            <th id="playerOne">Player 1</th>
+            <th id="playerTwo">Player 2</th>
+        </tr>
+        <tr>
+          <td id="playerOneScore">0</td>
+          <td id="playerTwoScore">0</td>
+        </tr>
+    </table>
+
+    <script>
+        // Show the instruction screen when the page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("instruction-screen").style.display = "block";
+        });
+
+        // Hide the instruction screen when the start game button is clicked
+        document.getElementById("start-game").addEventListener("click", function() {
+            document.getElementById("instruction-screen").style.display = "none";
+        });
+
+        let numbers = [];
+        for (let i = 0; i < 36; i++) {
+            numbers.push(i + 1);
+        }
+        let currentPlayer = 1; 
+        let playerOneScore = 0;
+        let playerTwoScore = 0;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var numberElements = document.getElementsByClassName("number");
+            for (var i = 0; i < numberElements.length; i++) {
+                numberElements[i].addEventListener("click", handleClick)
+            };
+        });
+        /* Removes the number from being clicked anymore */
+        function handleClick(event) {
+            if (event.target.innerHTML !== "") {
+                event.target.innerHTML = "";
+                event.target.removeEventListener("click", handleClick);
+                turnChange(event.target);
+            };
+        };
+
+        function turnChange(numberElement) {
+            let number = parseInt(numberElement.dataset.value); // Converts element to integer
+            /* Modifies array */
+            const index = numbers.indexOf(number);
+            if (index > -1) {
+                numbers.splice(index, 1);
+            }
+            /* Add raw number to player's score */
+            currentPlayer === 1 ? playerOneScore += number : playerTwoScore += number;
+            /* Remove factors from table and add to enemy's score */
+            const factors = [...numbers];
+            for (i = 0; i < factors.length; i++) {     
+                if ((number % factors[i]) == 0) {
+                    /* Removes factors from displayed table and array */
+                    const factorElement = document.querySelector(`[data-value="${factors[i]}"]`);
+                    const index = numbers.indexOf(factors[i]);
+                    factorElement.innerHTML = "";
+                    factorElement.removeEventListener("click", handleClick);
+                    numbers.splice(index, 1);
+                    /* Animates factors */
+                    const factorAnimationElement = document.createElement("span");
+                    factorAnimationElement.className = "factor-animation";
+                    factorAnimationElement.innerHTML = "+" + factors[i];
+                    factorElement.appendChild(factorAnimationElement);
+                    /* Adds factors for enemy in enemy's colors */
+                    if (currentPlayer === 1) {
+                        playerTwoScore += factors[i];
+                        factorAnimationElement.style.color = "red";
+                    }
+                    else {
+                        playerOneScore += factors[i];
+                        factorAnimationElement.style.color = "green";
+                    }
+                };
+            };
+            /* Animates picked number in player's colors */
+            const numberAnimationElement = document.createElement("span");
+            numberAnimationElement.className = "factor-animation";
+            numberAnimationElement.innerHTML = "+" + number;
+            numberElement.appendChild(numberAnimationElement);
+            currentPlayer === 1 ? numberAnimationElement.style.color = "green" : numberAnimationElement.style.color = "red";
+            /* Changes player turn */
+            if (currentPlayer === 1) {
+                currentPlayer = 2;
+                document.getElementById("playerTurn").style.color = "red";
+            }
+            else {
+                currentPlayer = 1;
+                document.getElementById("playerTurn").style.color = "green";
+            }
+            document.getElementById("playerTurn").innerHTML = `Player ${currentPlayer}'s`;
+            /* Change players' scores */
+            document.getElementById("playerOneScore").innerHTML = playerOneScore.toString();
+            document.getElementById("playerTwoScore").innerHTML = playerTwoScore.toString();
+
+            /* When the game ends, users are redirected to win screens w/ both players' scores */
+            if (numbers.length === 0) {
+                /* Creates object with both player's scores */
+                const formData = new FormData();
+                formData.append("playerOneScore", playerOneScore);
+                formData.append("playerTwoScore", playerTwoScore);
+                /* Sends post request with previous object to hide url parameters, 
+                preventing users from inputting different scores */
+                fetch("/36end", {
+                    method: "POST",
+                    body: formData
+                }).then(response => response.text())
+                .then(html => {
+                    document.body.innerHTML = html;
+                    });
+            };
+        };
+    </script>
+{% endblock %}
+
+<!--
+TODO:
+animation for instructions -- button to see
+sounds
+Allow users to choose colors
+Change GUI
+-->
