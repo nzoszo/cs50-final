@@ -40,6 +40,11 @@ def thirty_six_end():
 
     return render_template("36end.html", difference=difference, playerOneScore=playerOneScore, playerTwoScore=playerTwoScore, winner=winner)
 
+@app.route("/speed", methods=["GET", "POST"])
+@login_required
+def speed():
+    return render_template("speed.html")
+
 @app.route("/layout")
 def layout():
     return render_template("layout.html")
