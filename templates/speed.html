@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Speed!
+{% endblock %}
+
+{% block main %}
+    <div id="card-container">
+
+    </div>
+
+    <script>
+        /* Create deck of cards */
+        let deck = [];
+        const suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
+        const ranks = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
+
+        for (let suit of suits) {
+            for (let rank of ranks) {
+                const card = {
+                    suit,
+                    rank,
+                    image: `../static/card_images/${rank.toLowerCase()}_of_${suit.toLowerCase()}.png`
+                };
+                deck.push(card);
+            };
+        };
+        
+        /* Load and connect images to deck array */
+        const cardContainer = document.getElementById("card-container");
+        deck.forEach((card) => {
+            // Each card element
+            const cardElement = document.createElement("div");
+            cardElement.className = "card";
+            // Each card's image
+            const cardImage = document.createElement("img");
+            cardImage.src = card.image;
+            cardImage.alt = `${card.rank} of ${card.suit}`;
+            cardImage.className = "card-image";
+            cardElement.appendChild(cardImage);
+            // Add card 
+            cardContainer.appendChild(cardElement);
+        });
+        
+        // document.addEventListener("DOMContentLoaded", function() {
+        //     var cardElements = document.getElementsByClassName("cards");
+        //     for (var i = 0; i < cardElements.length; i++) {
+        //         // numberElements[i].addEventListener("click", playClickSound);
+        //         // numberElements[i].addEventListener("click", handleClick);
+        //     };
+        // });
+    </script>
+{% endblock %}
+
+<!--
+Pseudocode:
+Beginning:
+Create deck - 
+black clubs, red hearts, black spades, red diamonds
+13 for each
+
+Shuffle Deck (perhaps use animation)
+Deal 20 cards to each player
+Lay the rest in 4 piles in middle -- 5 1 1 5
+Distribute 5 cards from each player's deck to player (only visible to player)
+Game Rules:
+Cards
+Players have to rid their deck by placing their cards on the middle 2 
+Flip over left and right cards if current decks are unplayable
+If players can't play, draw from personal deck
+Players can only have 5 cards max at all times
+Gamemodes:
+More than 2 players
+Can play more than one card at once
+Include joker cards as wild
+-->
