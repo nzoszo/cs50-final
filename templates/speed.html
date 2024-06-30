@@ -9,7 +9,9 @@
 
     </div>
 
-    <button onclick="shuffle()">Shuffle!</button>
+    <button onclick="reveal()">Reveal</button>
+    <button onclick="shuffle()">Shuffle</button>
+    <button onclick="startGame()">Play!</button>
 
     <script>
         /* Create deck of cards */
@@ -23,7 +25,8 @@
                 const card = {
                     suit,
                     rank,
-                    image: `../static/card_images/${rank.toLowerCase()}_of_${suit.toLowerCase()}.png`
+                    image: `../static/card_images/${rank.toLowerCase()}_of_${suit.toLowerCase()}.png`,
+                    back: `../static/card_images/card_backside.png`
                 };
                 // Adds each card to a deck of cards
                 deck.push(card);
@@ -36,7 +39,7 @@
 
 
         /* Load and connect images to deck array */
-        function loadCards() {
+        function loadCards(reveal) {
             const cardContainer = document.getElementById("card-container");
             // Removes current deck of cards before loading new deck
             if (cardContainer.childElementCount > 0) {
@@ -49,10 +52,41 @@
                 cardElement.className = "card";
                 // Each card's image
                 const cardImage = document.createElement("img");
-                cardImage.src = card.image;
-                cardImage.alt = `${card.rank} of ${card.suit}`;
+                cardImage.src = card.back;
+                //cardImage.alt = `${card.rank} of ${card.suit}`;
                 cardImage.className = "card-image";
                 cardElement.appendChild(cardImage);
+                // Add card 
+                cardContainer.appendChild(cardElement);
+            });
+        };
+
+        /* Reveal deck */
+        function reveal() {
+            const cardContainer = document.getElementById("card-container");
+            cardContainer.innerHTML = "";
+            deck.forEach((card) => {
+                // Each card element
+                const cardElement = document.createElement("div");
+                cardElement.className = "card";
+                // Each card's image
+                const cardImage = document.createElement("img");
+                cardImage.src = card.image;
+                //cardImage.alt = `${card.rank} of ${card.suit}`;
+                cardImage.className = "card-image";
+                cardElement.appendChild(cardImage);
+                cardElement.classList.remove(".card");
+                cardElement.style.width = "100px";
+                cardElement.style.height = "140px";
+                cardElement.style.border = "2px solid";
+                cardElement.style.borderRadius = "10px";
+                cardElement.style.display = "inline-block";
+                cardElement.style.padding = "1px";
+                cardElement.style.margin = "10px";
+
+                cardElement.style.position = "absolute";
+                cardElement.style.left = `${leftPosition}px`; // set left position
+                leftPosition += 20; // increment left position for next card
                 // Add card 
                 cardContainer.appendChild(cardElement);
             });
@@ -72,6 +106,7 @@
             // Reload card images
             loadCards();
         };
+        
     </script>
 {% endblock %}
 
@@ -79,7 +114,11 @@
 Pseudocode:
 Beginning:
 
-Shuffle Deck (perhaps use animation)
+start with deck in pile -- button to reveal and to reshuffle
+Shuffle Deck:
+    20 cards go top left for enemy -- split into deck of 5 and 15
+    20 cards go bottom right player -- split into deck of 5 and 15
+    remaining 12 split 6 and 6 left and right of center of table -- (5 1 1 5)
 Deal 20 cards to each player
 Lay the rest in 4 piles in middle -- 5 1 1 5
 Distribute 5 cards from each player's deck to player (only visible to player)
