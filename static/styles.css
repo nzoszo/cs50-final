@@ -159,22 +159,26 @@ border: 2px solid #ccc;
 border-radius: 10px;
 object-fit: cover;
 }
+/* 
 
-.card-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-};
+.card-revealed {
+    width: 100px;
+    height: 140px;
+    border: 2px solid;
+    border-radius: 10px;
+    display: inline-block;
+    padding: 1px;
+    margin: 10px;
+}  */
 
-/* .card {
-width: 100px;
-height: 140px;
-border: 2px solid;
-border-radius: 10px;
-display: inline-block;
-padding: 1px;
-margin: 10px;
-} */
+@keyframes splitCards {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(50px, 50px);
+    }
+  }
 
 /* Size for brand */
 nav .navbar-brand {

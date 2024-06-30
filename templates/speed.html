@@ -9,9 +9,7 @@
 
     </div>
 
-    <button onclick="reveal()">Reveal</button>
-    <button onclick="shuffle()">Shuffle</button>
-    <button onclick="startGame()">Play!</button>
+    <button id="startGame" onclick="startGame()">Play!</button>
 
     <script>
         /* Create deck of cards */
@@ -39,7 +37,7 @@
 
 
         /* Load and connect images to deck array */
-        function loadCards(reveal) {
+        function loadCards() {
             const cardContainer = document.getElementById("card-container");
             // Removes current deck of cards before loading new deck
             if (cardContainer.childElementCount > 0) {
@@ -58,38 +56,7 @@
                 cardElement.appendChild(cardImage);
                 // Add card 
                 cardContainer.appendChild(cardElement);
-            });
-        };
-
-        /* Reveal deck */
-        function reveal() {
-            const cardContainer = document.getElementById("card-container");
-            cardContainer.innerHTML = "";
-            deck.forEach((card) => {
-                // Each card element
-                const cardElement = document.createElement("div");
-                cardElement.className = "card";
-                // Each card's image
-                const cardImage = document.createElement("img");
-                cardImage.src = card.image;
-                //cardImage.alt = `${card.rank} of ${card.suit}`;
-                cardImage.className = "card-image";
-                cardElement.appendChild(cardImage);
-                cardElement.classList.remove(".card");
-                cardElement.style.width = "100px";
-                cardElement.style.height = "140px";
-                cardElement.style.border = "2px solid";
-                cardElement.style.borderRadius = "10px";
-                cardElement.style.display = "inline-block";
-                cardElement.style.padding = "1px";
-                cardElement.style.margin = "10px";
-
-                cardElement.style.position = "absolute";
-                cardElement.style.left = `${leftPosition}px`; // set left position
-                leftPosition += 20; // increment left position for next card
-                // Add card 
-                cardContainer.appendChild(cardElement);
-            });
+                });
         };
 
         /* Shuffle deck of cards */
@@ -107,6 +74,68 @@
             loadCards();
         };
         
+        /* Starts Game */
+        function startGame() {
+            document.getElementById("startGame").remove()
+            const topLeftDeck = deck.slice(0, 20);
+            const bottomRightDeck = deck.slice(20, 40);
+            const middleLeftDeck = deck.slice(40, 46);
+            const middleRightDeck = deck.slice(46, 52);
+
+            
+            console.log(topLeftDeck);
+            console.log(bottomRightDeck);
+            console.log(middleLeftDeck);
+            console.log(middleRightDeck);
+            for (let i = 0; i < topLeftDeck.length; i++) {
+                console.log(topLeftDeck[i].image);
+            };
+
+            // Get the card elements
+            const cardElements = document.querySelectorAll('.card');
+
+            // Animate the cards
+            cardElements.forEach((cardElement, index) => {
+                const pileIndex = Math.floor(index / 13); // 13 cards per pile
+                const xCoordinate = getPileXCoordinate(pileIndex);
+                const yCoordinate = getPileYCoordinate(pileIndex);
+
+                cardElement.style.animation = 'splitCards 1s forwards';
+                cardElement.style.animationDelay = `${index * 50}ms`; // stagger the animation
+                cardElement.style.transform = `translate(${xCoordinate}px, ${yCoordinate}px)`;
+            });
+            }
+
+        // Helper functions to calculate the x and y coordinates for each pile
+        function getPileXCoordinate(pileIndex) {
+            switch (pileIndex) {
+                case 0:
+                    return 0; // top-left pile
+                case 1:
+                    return 1200; // bottom-right pile
+                case 2:
+                    return 800; // middle-left pile
+                case 3:
+                    return 300; // middle-right pile
+                default:
+                    return 0;
+            };
+        };
+
+        function getPileYCoordinate(pileIndex) {
+            switch (pileIndex) {
+                case 0:
+                    return 0; // top-left pile
+                case 1:
+                    return 400; // bottom-right pile
+                case 2:
+                    return 300; // middle-left pile
+                case 3:
+                    return 300; // middle-right pile
+                default:
+                    return 0;
+            };
+        };
     </script>
 {% endblock %}
 
@@ -114,7 +143,6 @@
 Pseudocode:
 Beginning:
 
-start with deck in pile -- button to reveal and to reshuffle
 Shuffle Deck:
     20 cards go top left for enemy -- split into deck of 5 and 15
     20 cards go bottom right player -- split into deck of 5 and 15
