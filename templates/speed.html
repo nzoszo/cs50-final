@@ -50,8 +50,9 @@
                 cardElement.className = "card";
                 // Each card's image
                 const cardImage = document.createElement("img");
+                const cardImageFront = document.createElement("img");
                 cardImage.src = card.back;
-                //cardImage.alt = `${card.rank} of ${card.suit}`;
+                cardImageFront.src = card.image;
                 cardImage.className = "card-image";
                 cardElement.appendChild(cardImage);
                 // Add card 
@@ -77,77 +78,67 @@
         /* Starts Game */
         function startGame() {
             document.getElementById("startGame").remove()
-            const topLeftDeck = deck.slice(0, 20);
-            const bottomRightDeck = deck.slice(20, 40);
-            const middleLeftDeck = deck.slice(40, 46);
-            const middleRightDeck = deck.slice(46, 52);
 
-            
-            console.log(topLeftDeck);
-            console.log(bottomRightDeck);
-            console.log(middleLeftDeck);
-            console.log(middleRightDeck);
-            for (let i = 0; i < topLeftDeck.length; i++) {
-                console.log(topLeftDeck[i].image);
-            };
+            // Get the deck and card elements
+            const deckContainer = document.getElementById("card-container");
+            const topLeftDeck = deckContainer.querySelectorAll("div:nth-child(-n+20)");
+            const bottomRightDeck = deckContainer.querySelectorAll("div:nth-child(n+21):nth-child(-n+40)");
+            const middleLeftDeck = deckContainer.querySelectorAll("div:nth-child(n+41):nth-child(-n+46)");
+            const middleRightDeck = deckContainer.querySelectorAll("div:nth-child(n+47):nth-child(-n+52)");
 
-            // Get the card elements
-            const cardElements = document.querySelectorAll('.card');
-
-            // Animate the cards
-            cardElements.forEach((cardElement, index) => {
-                const pileIndex = Math.floor(index / 13); // 13 cards per pile
-                const xCoordinate = getPileXCoordinate(pileIndex);
-                const yCoordinate = getPileYCoordinate(pileIndex);
-
-                cardElement.style.animation = 'splitCards 1s forwards';
-                cardElement.style.animationDelay = `${index * 50}ms`; // stagger the animation
-                cardElement.style.transform = `translate(${xCoordinate}px, ${yCoordinate}px)`;
-            });
-            }
-
-        // Helper functions to calculate the x and y coordinates for each pile
-        function getPileXCoordinate(pileIndex) {
-            switch (pileIndex) {
-                case 0:
-                    return 0; // top-left pile
-                case 1:
-                    return 1200; // bottom-right pile
-                case 2:
-                    return 800; // middle-left pile
-                case 3:
-                    return 300; // middle-right pile
-                default:
-                    return 0;
-            };
-        };
-
-        function getPileYCoordinate(pileIndex) {
-            switch (pileIndex) {
-                case 0:
-                    return 0; // top-left pile
-                case 1:
-                    return 400; // bottom-right pile
-                case 2:
-                    return 300; // middle-left pile
-                case 3:
-                    return 300; // middle-right pile
-                default:
-                    return 0;
-            };
+            // Animate the deck to the center
+            deckContainer.style.animation = 'moveCenter 1s forwards';
+            // Enemy's and player's decks animate first
+            setTimeout(() => {
+                // Animate 20 cards to top left 
+                topLeftDeck.forEach((cardElement, index) => {
+                    cardElement.style.animation = 'splitCardsLeft 1s forwards';
+                    cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                })
+                // Animate 20 cards to bottom right 
+                bottomRightDeck.forEach((cardElement, index) => {
+                    cardElement.style.animation = 'splitCardsRight 1s forwards';
+                    cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                })
+                // After top left and bottom right decks animate, middle piles animate
+                setTimeout(() => {
+                    // Animate 6 cards to center left
+                    middleLeftDeck.forEach((cardElement, index) => {
+                        cardElement.style.animation = 'splitCardsMiddleLeft 1s forwards';
+                        cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                        // Last card is played in middle
+                        if (index == 5) {
+                            setTimeout(() => {
+                                cardElement.style.animation = 'flipMiddleLeft 1s forwards';
+                                cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                            }, 1000);
+                        }
+                    })
+                    // Animate 6 cards to center right
+                    middleRightDeck.forEach((cardElement, index) => {
+                        cardElement.style.animation = 'splitCardsMiddleRight 1s forwards';
+                        cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                        // Last card is played in middle
+                        if (index == 5) {
+                            setTimeout(() => {
+                                cardElement.style.animation = 'flipMiddleRight 1s forwards';
+                                cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                                cardElement.src = cardElement.image;
+                                console.log(cardElement.src);
+                                console.log(cardElement.image);
+                            }, 1000);
+                        }
+                    })
+                }, 1000);
+            }, 1000);
         };
     </script>
 {% endblock %}
 
 <!--
 Pseudocode:
-Beginning:
 
-Shuffle Deck:
-    20 cards go top left for enemy -- split into deck of 5 and 15
-    20 cards go bottom right player -- split into deck of 5 and 15
-    remaining 12 split 6 and 6 left and right of center of table -- (5 1 1 5)
-Deal 20 cards to each player
+flip cards
 Lay the rest in 4 piles in middle -- 5 1 1 5
 Distribute 5 cards from each player's deck to player (only visible to player)
 Game Rules:

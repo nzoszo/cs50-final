@@ -144,6 +144,7 @@ animation: fadeOut 1.5s forwards;
 }
 
 /* Speed */
+
 .card {
     position: absolute;
     width: 100px;
@@ -171,14 +172,68 @@ object-fit: cover;
     margin: 10px;
 }  */
 
-@keyframes splitCards {
+@keyframes moveCenter {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(580px, 180px);
+    }
+}
+
+@keyframes splitCardsLeft {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(-580px, -180px);
+    }
+}
+
+@keyframes splitCardsRight {
     0% {
       transform: translate(0, 0);
     }
     100% {
-      transform: translate(50px, 50px);
+      transform: translate(580px, 180px);
     }
-  }
+}
+
+@keyframes splitCardsMiddleLeft {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(-200px, 0);
+    }
+}
+
+@keyframes splitCardsMiddleRight {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(200px, 0);
+    }
+}
+
+@keyframes flipMiddleLeft {
+    0% {
+        transform: translate(-200px, 0);
+    }
+    100% {
+        transform: translate(-65px, 0);
+    }
+}
+
+@keyframes flipMiddleRight {
+    0% {
+        transform: translate(200px, 0);
+    }
+    100% {
+        transform: translate(65px, 0);
+    }
+}
 
 /* Size for brand */
 nav .navbar-brand {
