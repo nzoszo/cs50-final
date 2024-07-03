@@ -44,18 +44,33 @@
                 cardContainer.innerHTML = "";
             };
             // Loads in new deck of cards
-            deck.forEach((card) => {
+            deck.forEach((card, index) => {
                 // Each card element
                 const cardElement = document.createElement("div");
                 cardElement.className = "card";
-                // Each card's image
-                const cardImage = document.createElement("img");
-                const cardImageFront = document.createElement("img");
-                cardImage.src = card.back;
-                cardImageFront.src = card.image;
-                cardImage.className = "card-image";
-                cardElement.appendChild(cardImage);
-                // Add card 
+                // Flips between front and back
+                const cardFlipper = document.createElement("div");
+                cardFlipper.className = "flip-card-inner";
+                // Suit and Rank card side
+                const cardFront = document.createElement("div");
+                cardFront.className = "flip-card-front";
+                // Front Image
+                const cardFrontImage = document.createElement("img");
+                cardFrontImage.className = "card-image";
+                cardFrontImage.src = card.image;
+                cardFront.appendChild(cardFrontImage);
+                cardFlipper.appendChild(cardFront);
+                // Back card side
+                const cardBack = document.createElement("div");
+                cardBack.className = "flip-card-back";
+                // Back Image
+                const cardBackImage = document.createElement("img");
+                cardBackImage.className = "card-image";
+                cardBackImage.src = card.back;
+                cardBack.appendChild(cardBackImage);
+                cardFlipper.appendChild(cardBack);
+                // Add card
+                cardElement.appendChild(cardFlipper)
                 cardContainer.appendChild(cardElement);
                 });
         };
@@ -81,10 +96,10 @@
 
             // Get the deck and card elements
             const deckContainer = document.getElementById("card-container");
-            const topLeftDeck = deckContainer.querySelectorAll("div:nth-child(-n+20)");
-            const bottomRightDeck = deckContainer.querySelectorAll("div:nth-child(n+21):nth-child(-n+40)");
-            const middleLeftDeck = deckContainer.querySelectorAll("div:nth-child(n+41):nth-child(-n+46)");
-            const middleRightDeck = deckContainer.querySelectorAll("div:nth-child(n+47):nth-child(-n+52)");
+            const topLeftDeck = deckContainer.querySelectorAll("div.card:nth-child(-n+20)");
+            const bottomRightDeck = deckContainer.querySelectorAll("div.card:nth-child(n+21):nth-child(-n+40)");
+            const middleLeftDeck = deckContainer.querySelectorAll("div.card:nth-child(n+41):nth-child(-n+46)");
+            const middleRightDeck = deckContainer.querySelectorAll("div.card:nth-child(n+47):nth-child(-n+52)");
 
             // Animate the deck to the center
             deckContainer.style.animation = 'moveCenter 1s forwards';
@@ -108,10 +123,24 @@
                         cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                         // Last card is played in middle
                         if (index == 5) {
+                            /* Card moves to middle */
                             setTimeout(() => {
                                 cardElement.style.animation = 'flipMiddleLeft 1s forwards';
                                 cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                             }, 1000);
+                            /* Card background is removed */
+                            setTimeout(() => {
+                                cardElement.classList.add('flipped');
+                                /* Card background is added back after card flips */
+                                setTimeout(() => {
+                                    cardElement.classList.remove('flipped');
+                                }, 1000);
+                            }, 1400);
+                            /* Card is flipped to reveal suit and rank */
+                            setTimeout(() => {
+                                cardElement.children[0].style.animation = 'flip 1s forwards';
+                                cardElement.children[0].style.animationDelay = `${index * 100}ms`; // trail effect
+                            }, 800);
                         }
                     })
                     // Animate 6 cards to center right
@@ -120,13 +149,25 @@
                         cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                         // Last card is played in middle
                         if (index == 5) {
+                            /* Card moves to middle */
                             setTimeout(() => {
                                 cardElement.style.animation = 'flipMiddleRight 1s forwards';
                                 cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                                cardElement.src = cardElement.image;
-                                console.log(cardElement.src);
-                                console.log(cardElement.image);
                             }, 1000);
+                            /* Card background is removed */
+                            setTimeout(() => {
+                                cardElement.classList.add('flipped');
+                                /* Card background is added back after card flips */
+                                setTimeout(() => {
+                                    cardElement.classList.remove('flipped');
+                                }, 1000);
+                            }, 1400);
+                            /* Card is flipped to reveal suit and rank */ 
+                            setTimeout(() => {
+                                cardElement.classList.add('flipped');
+                                cardElement.children[0].style.animation = 'flip 1s forwards';
+                                cardElement.children[0].style.animationDelay = `${index * 100}ms`; // trail effect
+                            }, 800);
                         }
                     })
                 }, 1000);
@@ -139,7 +180,15 @@
 Pseudocode:
 
 flip cards
-Lay the rest in 4 piles in middle -- 5 1 1 5
+
+Last middle card is flipped
+Whenever move cannot be made, players prompt each other to flip middle
+
+Start out flipping 5 cards to each player
+player clicks personal deck for more
+
+MAYBE: yellow glow around cards when to click
+
 Distribute 5 cards from each player's deck to player (only visible to player)
 Game Rules:
 Cards
