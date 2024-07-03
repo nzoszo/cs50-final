@@ -254,6 +254,15 @@ transform: rotateY(180deg);
     }
 }
 
+@keyframes flipPlayerCards {
+    0% {
+        transform: translate(580px, 180px);
+    }
+    100% {
+        transform: translate(50px, 180px);
+    }
+}
+
 @keyframes flipMiddleLeft {
     0% {
         transform: translate(-250px, 0);

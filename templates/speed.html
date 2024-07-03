@@ -96,24 +96,34 @@
 
             // Get the deck and card elements
             const deckContainer = document.getElementById("card-container");
-            const topLeftDeck = deckContainer.querySelectorAll("div.card:nth-child(-n+20)");
-            const bottomRightDeck = deckContainer.querySelectorAll("div.card:nth-child(n+21):nth-child(-n+40)");
+            const enemyDeck = deckContainer.querySelectorAll("div.card:nth-child(-n+20)");
+            const playerDeck = deckContainer.querySelectorAll("div.card:nth-child(n+21):nth-child(-n+40)");
             const middleLeftDeck = deckContainer.querySelectorAll("div.card:nth-child(n+41):nth-child(-n+46)");
             const middleRightDeck = deckContainer.querySelectorAll("div.card:nth-child(n+47):nth-child(-n+52)");
 
             // Animate the deck to the center
             deckContainer.style.animation = 'moveCenter 1s forwards';
+
             // Enemy's and player's decks animate first
+
+            // Create array of number of cards in player's hand
+            // Start game with it at max capacity (5)
+            // Do so by flipping it to the center, looping it until it reaches max capacity
+            // Each card will be slightly to the right of the previous, zindex above its left
             setTimeout(() => {
                 // Animate 20 cards to top left 
-                topLeftDeck.forEach((cardElement, index) => {
+                enemyDeck.forEach((cardElement, index) => {
                     cardElement.style.animation = 'splitCardsLeft 1s forwards';
                     cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                 })
                 // Animate 20 cards to bottom right 
-                bottomRightDeck.forEach((cardElement, index) => {
+                playerDeck.forEach((cardElement, index) => {
                     cardElement.style.animation = 'splitCardsRight 1s forwards';
                     cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                    console.log(index);
+                    if (index == 19) {
+                        flip(cardElement, index, "player");
+                    }
                 })
                 // After top left and bottom right decks animate, middle piles animate
                 setTimeout(() => {
@@ -123,24 +133,7 @@
                         cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                         // Last card is played in middle
                         if (index == 5) {
-                            /* Card moves to middle */
-                            setTimeout(() => {
-                                cardElement.style.animation = 'flipMiddleLeft 1s forwards';
-                                cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                            }, 1000);
-                            /* Card background is removed */
-                            setTimeout(() => {
-                                cardElement.classList.add('flipped');
-                                /* Card background is added back after card flips */
-                                setTimeout(() => {
-                                    cardElement.classList.remove('flipped');
-                                }, 1000);
-                            }, 1400);
-                            /* Card is flipped to reveal suit and rank */
-                            setTimeout(() => {
-                                cardElement.children[0].style.animation = 'flip 1s forwards';
-                                cardElement.children[0].style.animationDelay = `${index * 100}ms`; // trail effect
-                            }, 800);
+                            flip(cardElement, index, "left");
                         }
                     })
                     // Animate 6 cards to center right
@@ -149,29 +142,45 @@
                         cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                         // Last card is played in middle
                         if (index == 5) {
-                            /* Card moves to middle */
-                            setTimeout(() => {
-                                cardElement.style.animation = 'flipMiddleRight 1s forwards';
-                                cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                            }, 1000);
-                            /* Card background is removed */
-                            setTimeout(() => {
-                                cardElement.classList.add('flipped');
-                                /* Card background is added back after card flips */
-                                setTimeout(() => {
-                                    cardElement.classList.remove('flipped');
-                                }, 1000);
-                            }, 1400);
-                            /* Card is flipped to reveal suit and rank */ 
-                            setTimeout(() => {
-                                cardElement.classList.add('flipped');
-                                cardElement.children[0].style.animation = 'flip 1s forwards';
-                                cardElement.children[0].style.animationDelay = `${index * 100}ms`; // trail effect
-                            }, 800);
+                            flip(cardElement, index, "right");
                         }
                     })
                 }, 1000);
             }, 1000);
+        };
+
+        function flip(cardElement, index, location) {
+            /* Card moves to middle */
+            setTimeout(() => {
+                switch(location) {
+                    case "enemy":
+                        console.log("enemy deck flipped");
+                        break;
+                    case "player":
+                        cardElement.style.animation = 'flipPlayerCards 1s forwards';
+                        break;
+                    case "left":
+                        cardElement.style.animation = 'flipMiddleLeft 1s forwards';
+                        break;
+                    case "right":
+                        cardElement.style.animation = 'flipMiddleRight 1s forwards';
+                        break;
+                }
+                cardElement.style.animationDelay = `${250}ms`; // trail effect
+            }, 1000);
+            /* Card background is removed */
+            setTimeout(() => {
+                cardElement.classList.add('flipped');
+                /* Card background is added back after card flips */
+                setTimeout(() => {
+                    cardElement.classList.remove('flipped');
+                }, 1000);
+            }, 1400);
+            /* Card is flipped to reveal suit and rank */
+            setTimeout(() => {
+                cardElement.children[0].style.animation = 'flip 1s forwards';
+                cardElement.children[0].style.animationDelay = `${index * 100}ms`; // trail effect
+            }, 800);
         };
     </script>
 {% endblock %}
@@ -179,9 +188,8 @@
 <!--
 Pseudocode:
 
-flip cards
 
-Last middle card is flipped
+
 Whenever move cannot be made, players prompt each other to flip middle
 
 Start out flipping 5 cards to each player
