@@ -174,12 +174,12 @@
                 /* Card background is added back after card flips */
                 setTimeout(() => {
                     cardElement.classList.remove('flipped');
-                }, 1000);
+                }, 10000);
             }, 1400);
             /* Card is flipped to reveal suit and rank */
             setTimeout(() => {
                 cardElement.children[0].style.animation = 'flip 1s forwards';
-                cardElement.children[0].style.animationDelay = `${index * 100}ms`; // trail effect
+                cardElement.children[0].style.animationDelay = `${500}ms`; // trail effect
             }, 800);
         };
     </script>

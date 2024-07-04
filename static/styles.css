@@ -214,7 +214,7 @@ transform: rotateY(180deg);
         transform: translate(0, 0);
     }
     100% {
-        transform: translate(580px, 180px);
+        transform: translateX(50vw) translateY(50vh);
     }
 }
 
@@ -259,7 +259,7 @@ transform: rotateY(180deg);
         transform: translate(580px, 180px);
     }
     100% {
-        transform: translate(50px, 180px);
+        transform: translate(calc(50vw - 50%), 180px);
     }
 }
 
