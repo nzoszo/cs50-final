@@ -35,7 +35,6 @@
             shuffle();
         });
 
-
         /* Load and connect images to deck array */
         function loadCards() {
             const cardContainer = document.getElementById("card-container");
@@ -115,14 +114,25 @@
                 enemyDeck.forEach((cardElement, index) => {
                     cardElement.style.animation = 'splitCardsLeft 1s forwards';
                     cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                    // Top 5 cards in deck
+                    if (index >= 15) {
+                        // Cards are staggered from 0px at x-coord
+                        cardElement.style.setProperty('--card-x-translate', `${(index - 17) * 80}px`);
+                        flip(cardElement, index, "enemy");
+                    }
                 })
                 // Animate 20 cards to bottom right 
                 playerDeck.forEach((cardElement, index) => {
                     cardElement.style.animation = 'splitCardsRight 1s forwards';
                     cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                    console.log(index);
-                    if (index == 19) {
+                    // Top 5 cards in deck
+                    if (index >= 15) {
+                        // Cards are staggered from 0px at x-coord
+                        cardElement.style.setProperty('--card-x-translate', `${(index - 17) * 85}px`);
                         flip(cardElement, index, "player");
+                        // Allows for card to be inspected and draggable
+                        cardElement.classList.add("inspect");
+                        dragCard(cardElement);
                     }
                 })
                 // After top left and bottom right decks animate, middle piles animate
@@ -133,7 +143,9 @@
                         cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                         // Last card is played in middle
                         if (index == 5) {
-                            flip(cardElement, index, "left");
+                            setTimeout(() => {
+                                flip(cardElement, index, "left");
+                            }, 1000);
                         }
                     })
                     // Animate 6 cards to center right
@@ -142,22 +154,25 @@
                         cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                         // Last card is played in middle
                         if (index == 5) {
-                            flip(cardElement, index, "right");
+                            setTimeout(() => {
+                                flip(cardElement, index, "right");
+                            }, 1000);
                         }
                     })
                 }, 1000);
             }, 1000);
         };
 
+        /* Helper function to flip cards */
         function flip(cardElement, index, location) {
             /* Card moves to middle */
             setTimeout(() => {
                 switch(location) {
                     case "enemy":
-                        console.log("enemy deck flipped");
+                        cardElement.style.animation = 'flipEnemyCards 1s forwards';
                         break;
                     case "player":
-                        cardElement.style.animation = 'flipPlayerCards 1s forwards';
+                        cardElement.style.animation = 'flipPlayerCards 1s forwards';;
                         break;
                     case "left":
                         cardElement.style.animation = 'flipMiddleLeft 1s forwards';
@@ -166,8 +181,11 @@
                         cardElement.style.animation = 'flipMiddleRight 1s forwards';
                         break;
                 }
-                cardElement.style.animationDelay = `${250}ms`; // trail effect
             }, 1000);
+            /* Enemy's cards will not be visible to player */
+            if (location == "enemy") {
+                return;
+            }
             /* Card background is removed */
             setTimeout(() => {
                 cardElement.classList.add('flipped');
@@ -182,22 +200,50 @@
                 cardElement.children[0].style.animationDelay = `${500}ms`; // trail effect
             }, 800);
         };
+
+        /* Helper function to drag cards*/
+        function dragCard(card) {
+            let isDragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            card.addEventListener("mousedown", (e) => {
+                if (e.button === 0) { // Only if the left mouse button is clicked
+                    card.classList.add("draggable");
+                    isDragging = true;
+                    offsetX = e.clientX - card.offsetLeft;
+                    offsetY = e.clientY - card.offsetTop;
+                }
+            });
+
+            document.addEventListener("mousemove", (e) => {
+                if (isDragging) {
+                card.style.top = `${e.clientY - offsetY}px`;
+                card.style.left = `${e.clientX - offsetX}px`;
+                }
+            });
+
+            document.addEventListener("mouseup", () => {
+                card.classList.remove("draggable");
+                isDragging = false;
+            });
+        };
     </script>
 {% endblock %}
 
 <!--
 Pseudocode:
 
-
+move cards on to pile
 
 Whenever move cannot be made, players prompt each other to flip middle
+(For player: waiting for other player to respond)
+(For enemy: other player requests for a flip in the middle)
 
-Start out flipping 5 cards to each player
 player clicks personal deck for more
 
 MAYBE: yellow glow around cards when to click
 
-Distribute 5 cards from each player's deck to player (only visible to player)
 Game Rules:
 Cards
 Players have to rid their deck by placing their cards on the middle 2 

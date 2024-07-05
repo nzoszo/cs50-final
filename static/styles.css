@@ -1,3 +1,7 @@
+:root {
+    --card-x-translate: 0px;
+}
+
 /* Add some basic styling to the game */
 body {
 font-family: Arial, sans-serif;
@@ -147,9 +151,11 @@ animation: fadeOut 1.5s forwards;
 
 #card-container {
 perspective: 1000px; /* 3D flip effect */
+width: 100px;
 }
 
 .card {
+    display: inline-block;
     position: absolute;
     width: 100px;
     height: 145px;
@@ -169,6 +175,12 @@ height: 100%;
 border: 1px solid #333;
 border-radius: 5px;
 object-fit: cover;
+pointer-events: none; /* Stops image from being dragged */
+/* Stops images from being highlighted */
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
 }
 
 #card-container {
@@ -197,6 +209,22 @@ backface-visibility: hidden;
 transform: rotateY(180deg);
 }
 
+.inspect:hover {
+    /* Raises and adds yellow border to inspected card */
+    border: 4px solid yellow;
+    top: -10px;
+
+    /* Glow effect */
+    -webkit-box-shadow:0 0 20px 10px yellow; 
+    -moz-box-shadow: 0 0 20px 10px yellow; 
+    box-shadow:0 0 20px 10px yellow;
+}
+
+.card.draggable {
+    position: absolute;
+    z-index: 1000; /* Ensures card is on top of all others */
+}
+
 /* 
 
 .card-revealed {
@@ -214,7 +242,7 @@ transform: rotateY(180deg);
         transform: translate(0, 0);
     }
     100% {
-        transform: translateX(50vw) translateY(50vh);
+        transform: translate(550px, 180px);
     }
 }
 
@@ -259,7 +287,16 @@ transform: rotateY(180deg);
         transform: translate(580px, 180px);
     }
     100% {
-        transform: translate(calc(50vw - 50%), 180px);
+        transform: translate(var(--card-x-translate), 180px);
+    }
+}
+
+@keyframes flipEnemyCards {
+    0% {
+        transform: translate(-580px, -180px);
+    }
+    100% {
+        transform: translate(var(--card-x-translate), -180px);
     }
 }
 
