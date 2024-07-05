@@ -42,37 +42,40 @@
             if (cardContainer.childElementCount > 0) {
                 cardContainer.innerHTML = "";
             };
+
             // Loads in new deck of cards
             deck.forEach((card, index) => {
-                // Each card element
-                const cardElement = document.createElement("div");
-                cardElement.className = "card";
-                // Flips between front and back
-                const cardFlipper = document.createElement("div");
-                cardFlipper.className = "flip-card-inner";
-                // Suit and Rank card side
-                const cardFront = document.createElement("div");
-                cardFront.className = "flip-card-front";
-                // Front Image
-                const cardFrontImage = document.createElement("img");
-                cardFrontImage.className = "card-image";
-                cardFrontImage.src = card.image;
-                cardFront.appendChild(cardFrontImage);
-                cardFlipper.appendChild(cardFront);
-                // Back card side
-                const cardBack = document.createElement("div");
-                cardBack.className = "flip-card-back";
-                // Back Image
-                const cardBackImage = document.createElement("img");
-                cardBackImage.className = "card-image";
-                cardBackImage.src = card.back;
-                cardBack.appendChild(cardBackImage);
-                cardFlipper.appendChild(cardBack);
-                // Add card
+                // Creates each card element: card -> cardFlipper -> (cardFront -> cardFrontImage) & (cardBack -> cardBackImage)
+                const cardElement = cardLoader("div", "card");
+                const cardFlipper = cardLoader("div", "flip-card-inner", "", cardElement);
+                const cardFront = cardLoader("div", "flip-card-front", "", cardFlipper);
+                const cardFrontImage = cardLoader("img", "card-image", card.image, cardFront, cardFlipper);
+                const cardBack = cardLoader("div", "flip-card-back", "", cardFlipper);
+                const cardBackImage = cardLoader("img", "card-image", card.back, cardBack, cardFlipper);
+                // Appends each card to deck
                 cardElement.appendChild(cardFlipper)
                 cardContainer.appendChild(cardElement);
-                });
+            });
         };
+
+        /* Helper function to create card elements */
+        function cardLoader(elementType, className, source = "", parentNode, grandparentNode) {
+            // Creates element with class name
+            const element = document.createElement(elementType);
+            element.className = className;
+            // If element is an image (e.g. cardFrontImage and cardBackImage)
+            if (elementType === "img") {
+                element.src = source;
+            }
+            /* Handles appending */
+            if (parentNode) {
+                parentNode.appendChild(element);
+            }
+            if (grandparentNode) {
+                grandparentNode.appendChild(parentNode);
+            }
+            return element;
+        }
 
         /* Shuffle deck of cards */
         function shuffle() {
@@ -104,63 +107,48 @@
             deckContainer.style.animation = 'moveCenter 1s forwards';
 
             // Enemy's and player's decks animate first
-
-            // Create array of number of cards in player's hand
-            // Start game with it at max capacity (5)
-            // Do so by flipping it to the center, looping it until it reaches max capacity
-            // Each card will be slightly to the right of the previous, zindex above its left
             setTimeout(() => {
                 // Animate 20 cards to top left 
-                enemyDeck.forEach((cardElement, index) => {
-                    cardElement.style.animation = 'splitCardsLeft 1s forwards';
-                    cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                splitCards(enemyDeck, "enemy", "splitCardsLeft", true, false);
+                // Animate 20 cards to bottom right 
+                splitCards(playerDeck, "player", "splitCardsRight", true, true)
+                // After top left and bottom right decks animate, middle piles animate
+                setTimeout(() => {
+                    // Animate 6 cards to center left
+                    splitCards(middleLeftDeck, "left", "splitCardsMiddleLeft", false, false);
+                    // Animate 6 cards to center right
+                    splitCards(middleRightDeck, "right", "splitCardsMiddleRight", false, false);
+                }, 1000);
+            }, 1000);
+        };
+
+        /* Helper function to split decks */
+        function splitCards(deck, type, animation, deckSize, dragAndInspect) {
+            deck.forEach((cardElement, index) => {
+                cardElement.style.animation = `${animation} 1s forwards`;
+                cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
+                if (deckSize) {
                     // Top 5 cards in deck
                     if (index >= 15) {
                         // Cards are staggered from 0px at x-coord
                         cardElement.style.setProperty('--card-x-translate', `${(index - 17) * 80}px`);
-                        flip(cardElement, index, "enemy");
-                    }
-                })
-                // Animate 20 cards to bottom right 
-                playerDeck.forEach((cardElement, index) => {
-                    cardElement.style.animation = 'splitCardsRight 1s forwards';
-                    cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                    // Top 5 cards in deck
-                    if (index >= 15) {
-                        // Cards are staggered from 0px at x-coord
-                        cardElement.style.setProperty('--card-x-translate', `${(index - 17) * 85}px`);
-                        flip(cardElement, index, "player");
+                        flip(cardElement, index, `${type}`);
                         // Allows for card to be inspected and draggable
-                        cardElement.classList.add("inspect");
-                        dragCard(cardElement);
+                        if (dragAndInspect) {
+                            cardElement.classList.add("inspect");
+                            dragCard(cardElement);
+                        }
                     }
-                })
-                // After top left and bottom right decks animate, middle piles animate
-                setTimeout(() => {
-                    // Animate 6 cards to center left
-                    middleLeftDeck.forEach((cardElement, index) => {
-                        cardElement.style.animation = 'splitCardsMiddleLeft 1s forwards';
-                        cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                        // Last card is played in middle
-                        if (index == 5) {
-                            setTimeout(() => {
-                                flip(cardElement, index, "left");
-                            }, 1000);
-                        }
-                    })
-                    // Animate 6 cards to center right
-                    middleRightDeck.forEach((cardElement, index) => {
-                        cardElement.style.animation = 'splitCardsMiddleRight 1s forwards';
-                        cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
-                        // Last card is played in middle
-                        if (index == 5) {
-                            setTimeout(() => {
-                                flip(cardElement, index, "right");
-                            }, 1000);
-                        }
-                    })
-                }, 1000);
-            }, 1000);
+                }
+                else {
+                    // Last card is played in middle
+                    if (index == 5) {
+                        setTimeout(() => {
+                            flip(cardElement, index, `${type}`);
+                        }, 1000);
+                    }
+                }
+            });            
         };
 
         /* Helper function to flip cards */
@@ -207,6 +195,9 @@
             let offsetX = 0;
             let offsetY = 0;
 
+            let originalTop = card.offsetTop;
+            let originalLeft = card.offsetLeft;
+            // Clicking the card
             card.addEventListener("mousedown", (e) => {
                 if (e.button === 0) { // Only if the left mouse button is clicked
                     card.classList.add("draggable");
@@ -215,17 +206,20 @@
                     offsetY = e.clientY - card.offsetTop;
                 }
             });
-
+            // Moving the card
             document.addEventListener("mousemove", (e) => {
                 if (isDragging) {
                 card.style.top = `${e.clientY - offsetY}px`;
                 card.style.left = `${e.clientX - offsetX}px`;
                 }
             });
-
-            document.addEventListener("mouseup", () => {
+            // Releasing the card
+            document.addEventListener("mouseup", (e) => {
                 card.classList.remove("draggable");
                 isDragging = false;
+                /* Handles snap back */
+                card.style.top = `${originalTop}px`;
+                card.style.left = `${originalLeft}px`;
             });
         };
     </script>
