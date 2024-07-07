@@ -106,24 +106,25 @@
             // Animate the deck to the center
             deckContainer.style.animation = 'moveCenter 1s forwards';
 
-            // Enemy's and player's decks animate first
+            // Enemy's and player's decks animate first after 1 second after moving center
             setTimeout(() => {
                 // Animate 20 cards to top left 
-                splitCards(enemyDeck, "enemy", "splitCardsLeft", true, false);
+                splitCards(enemyDeck, "enemy", "splitCardsLeft");
                 // Animate 20 cards to bottom right 
-                splitCards(playerDeck, "player", "splitCardsRight", true, true)
-                // After top left and bottom right decks animate, middle piles animate
+                splitCards(playerDeck, "player", "splitCardsRight")
+                // A second after top left and bottom right decks animate, middle piles animate
                 setTimeout(() => {
                     // Animate 6 cards to center left
-                    splitCards(middleLeftDeck, "left", "splitCardsMiddleLeft", false, false);
+                    splitCards(middleLeftDeck, "left", "splitCardsMiddleLeft", false);
                     // Animate 6 cards to center right
-                    splitCards(middleRightDeck, "right", "splitCardsMiddleRight", false, false);
+                    splitCards(middleRightDeck, "right", "splitCardsMiddleRight", false);
                 }, 1000);
             }, 1000);
         };
 
         /* Helper function to split decks */
-        function splitCards(deck, type, animation, deckSize, dragAndInspect) {
+        // deck = deck of cards, location = where to, animation = which animation to apply, deckSize = length of deck 
+        function splitCards(deck, location, animation, deckSize = true) {
             deck.forEach((cardElement, index) => {
                 cardElement.style.animation = `${animation} 1s forwards`;
                 cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
@@ -132,19 +133,14 @@
                     if (index >= 15) {
                         // Cards are staggered from 0px at x-coord
                         cardElement.style.setProperty('--card-x-translate', `${(index - 17) * 80}px`);
-                        flip(cardElement, index, `${type}`);
-                        // Allows for card to be inspected and draggable
-                        if (dragAndInspect) {
-                            cardElement.classList.add("inspect");
-                            dragCard(cardElement);
-                        }
+                        flip(cardElement, index, `${location}`);
                     }
-                }
-                else {
+                } else {
                     // Last card is played in middle
                     if (index == 5) {
                         setTimeout(() => {
-                            flip(cardElement, index, `${type}`);
+                            flip(cardElement, index, `${location}`);
+                            cardElement.classList.add("center-card"); // Two center cards
                         }, 1000);
                     }
                 }
@@ -160,7 +156,9 @@
                         cardElement.style.animation = 'flipEnemyCards 1s forwards';
                         break;
                     case "player":
-                        cardElement.style.animation = 'flipPlayerCards 1s forwards';;
+                        cardElement.style.animation = 'flipPlayerCards 1s forwards';
+                        /* Allows player cards to be inspected */
+                        cardElement.classList.add("inspect");
                         break;
                     case "left":
                         cardElement.style.animation = 'flipMiddleLeft 1s forwards';
@@ -187,6 +185,10 @@
                 cardElement.children[0].style.animation = 'flip 1s forwards';
                 cardElement.children[0].style.animationDelay = `${500}ms`; // trail effect
             }, 800);
+
+            if (location == "player") {
+                dragCard(cardElement);
+            }
         };
 
         /* Helper function to drag cards*/
@@ -200,43 +202,175 @@
             // Clicking the card
             card.addEventListener("mousedown", (e) => {
                 if (e.button === 0) { // Only if the left mouse button is clicked
+                    const centerCards = document.querySelectorAll(".center-card");
+                    if (centerCards.length < 2) {
+                        return;
+                    }
                     card.classList.add("draggable");
                     isDragging = true;
                     offsetX = e.clientX - card.offsetLeft;
                     offsetY = e.clientY - card.offsetTop;
+
+                    document.querySelectorAll(".card.center-card").forEach(element => {
+                        element.classList.add("yellow-card-highlight");
+                    });
                 }
             });
             // Moving the card
             document.addEventListener("mousemove", (e) => {
                 if (isDragging) {
-                card.style.top = `${e.clientY - offsetY}px`;
-                card.style.left = `${e.clientX - offsetX}px`;
+                    card.style.top = `${e.clientY - offsetY}px`;
+                    card.style.left = `${e.clientX - offsetX}px`;
+
+                    // Check if dragged card is over a center card
+                    const centerCards = document.querySelectorAll(".center-card");
+                    for (const centerCard of centerCards) {
+                        if (isDraggingCardOverCenterCard(card, centerCard)) {
+                            // Add cyan highlight
+                            centerCard.classList.add("cyan-card-highlight");
+                        } else {
+                            // Remove cyan highlight
+                            centerCard.classList.remove("cyan-card-highlight");
+                        }
+                    };
                 }
             });
             // Releasing the card
             document.addEventListener("mouseup", (e) => {
                 card.classList.remove("draggable");
                 isDragging = false;
-                /* Handles snap back */
+
+                // Removes yellow highlight
+                document.querySelectorAll(".card.center-card").forEach(element => {
+                    element.classList.remove("yellow-card-highlight");
+                });
+
+                // Checks if card is playable
+                const centerCards = document.querySelectorAll(".center-card");
+                let cardCounter = 0;
+                for (const centerCard of centerCards) {
+                    if (isDraggingCardOverCenterCard(card, centerCard)) { // If over center card
+                        if (isCardPlayable(card, centerCard)) { // If playable
+                            cardCounter++;
+
+                            // Add green highlight
+                            centerCard.classList.add("green-card-highlight");
+                            setTimeout(() => {
+                                centerCard.classList.remove("green-card-highlight");
+                            }, 200);
+                            // Flip card onto center card
+                            ridCard(card, centerCard);
+                            if (cardCounter > 1) {
+                                console.log("two cards")
+                            }
+                        } else { // If not playable
+                            cardCounter++;
+
+                            centerCard.classList.add("red-card-highlight");
+                            setTimeout(() => {
+                                centerCard.classList.remove("red-card-highlight");
+                            }, 200);
+                            if (cardCounter > 1) {
+                                console.log("two cards")
+                            }
+                        }
+                        centerCard.classList.remove("cyan-card-highlight");
+                    } else { // If not over center card
+                        centerCard.classList.remove("cyan-card-highlight");
+                    };
+                };
+                // Handles snap back 
                 card.style.top = `${originalTop}px`;
                 card.style.left = `${originalLeft}px`;
             });
         };
+
+        /* Helper function to detect if mouse is over an element */
+        function isDraggingCardOverCenterCard(draggedCard, centerCard) {
+            /* Gets size and pos of dragged and center card */
+            const draggedRect = draggedCard.getBoundingClientRect();
+            const centerRect = centerCard.getBoundingClientRect();
+            // Returns true if dragged card is within range of center card
+            return (
+                draggedRect.left <= centerRect.right && // If card is left of center right
+                draggedRect.right >= centerRect.left && // If card is right of center left
+                draggedRect.top <= centerRect.bottom && // If card is above center bottom
+                draggedRect.bottom >= centerRect.top // If card is below center top
+            )
+        };
+
+        /* Helper function to rid the card and "score a point" */
+        function ridCard(card, targetCard) {
+            return true;
+        }
+
+        /* Helper function to check if card is playable or not */
+        function isCardPlayable(card, targetCard) {
+            // Gets rank of dragged card and center card
+            const player = rankOfCard(card);
+            const target= rankOfCard(targetCard);
+
+            /* True = playable, False = not playable */
+            if (player === target) { // Equal
+                return false;
+            }
+            else if (player == 13 && target == 1) { // King < ace
+                return true;
+            }
+            else if (player - target == -1) { // Smaller by one
+                return true;
+            }
+            else if (player == 1 && target == 13) { // Ace > king
+                return true;
+            }
+            else if (player - target == 1) { // Bigger by one
+                return true;
+            }
+            else { // Anything else
+                return false;
+            }
+        }
+
+        /* Helper function to determine rank of card */
+        function rankOfCard(card) {
+            // Example url: http://127.0.0.1:5000/static/card_images/jack_of_diamonds.png
+            const url = card.querySelector(".card-image").src; // Gets url of image
+            const filename = url.split("/").pop(); // Splits up url by / and gets last "index"
+            const rank = filename.split("_")[0]; // Splits up url by _ and gets first "index"
+            
+            const intRank = parseInt(rank);
+            if (isNaN(intRank)) { // If rank is not an integer (e.g, ace, jack, queen, king)
+                return convertFaceToNumber(rank);
+            } else {
+                return intRank; // If rank is an integer
+            }
+        }
+
+        /* Helper function to convert face cards to numbers*/
+        function convertFaceToNumber(letter) {
+            // Integer-based values for face cards plus ace
+            switch(letter) {
+                case "ace":
+                    return 1;
+                case "jack":
+                    return 11;
+                case "queen":
+                    return 12;
+                case "king":
+                    return 13;
+            };
+        }
+
     </script>
 {% endblock %}
 
 <!--
-Pseudocode:
-
-move cards on to pile
-
 Whenever move cannot be made, players prompt each other to flip middle
 (For player: waiting for other player to respond)
 (For enemy: other player requests for a flip in the middle)
 
 player clicks personal deck for more
 
-MAYBE: yellow glow around cards when to click
 
 Game Rules:
 Cards

@@ -36,7 +36,8 @@ padding: 20px;
 border: 1px solid #ddd;
 border-radius: 10px;
 box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-width: 40%;
+width: 50%;
+height: 80%;
 z-index: 100;
 }
 
@@ -213,6 +214,7 @@ transform: rotateY(180deg);
     /* Raises and adds yellow border to inspected card */
     border: 4px solid yellow;
     top: -10px;
+    background-color: transparent;
 
     /* Glow effect */
     -webkit-box-shadow:0 0 20px 10px yellow; 
@@ -225,8 +227,55 @@ transform: rotateY(180deg);
     z-index: 1000; /* Ensures card is on top of all others */
 }
 
-/* 
+.center-card {
+    background-color: transparent;
+}
 
+/* Adds yellow border to playzone cards */
+.yellow-card-highlight {
+    border: 4px solid yellow;
+    border-radius: 5px;
+    background-color: transparent;
+
+    -webkit-box-shadow:0 0 20px 10px yellow; 
+    -moz-box-shadow: 0 0 20px 10px yellow; 
+    box-shadow:0 0 15px 5px yellow;
+} 
+
+/* Adds cyan border to playzone cards */
+.cyan-card-highlight {
+    border: 4px solid cyan;
+    border-radius: 5px;
+    background-color: transparent;
+
+    -webkit-box-shadow:0 0 20px 10px cyan;
+    -moz-box-shadow: 0 0 20px 10px cyan;
+    box-shadow:0 0 15px 5px cyan;
+}
+
+/* Adds green border if card is playable */
+.green-card-highlight {
+    border: 4x solid lightgreen;
+    border-radius: 5px;
+    background-color: transparent;
+
+    -webkit-box-shadow:0 0 20px 10px lightgreen;
+    -moz-box-shadow: 0 0 20px 10px lightgreen;
+    box-shadow:0 0 15px 5px lightgreen;
+}
+
+/* Adds red border if card isn't playable */
+.red-card-highlight {
+    border: 4px solid #f70d1a;
+    border-radius: 5px;
+    background-color: transparent;
+
+    -webkit-box-shadow:0 0 20px 10px #f70d1a;
+    -moz-box-shadow: 0 0 20px 10px #f70d1a;
+    box-shadow:0 0 15px 5px #f70d1a;
+}
+
+/* 
 .card-revealed {
     width: 100px;
     height: 140px;
