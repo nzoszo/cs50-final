@@ -1,11 +1,19 @@
 :root {
-    --card-x-translate: 0px;
+    --center-deck-x: 0px;
+    --center-deck-y: 0px;
+    --flip-player-enemy-card-x-translate: 0px;
+    --rid-player-card-x-translate-start: 0px;
+    --rid-player-card-y-translate-start: 0px;
+    --rid-player-card-x-translate-end: 0px;
+    --rid-player-card-y-translate-end: 0px;
 }
 
 /* Add some basic styling to the game */
 body {
 font-family: Arial, sans-serif;
 background-color: #f0f0f0; /* light gray background */
+overflow-x: hidden;
+max-width: 100%;
 }
 
 table {
@@ -150,9 +158,14 @@ animation: fadeOut 1.5s forwards;
 
 /* Speed */
 
+#startGame {
+    position: absolute;
+}
+
 #card-container {
 perspective: 1000px; /* 3D flip effect */
 width: 100px;
+background-color: purple;
 }
 
 .card {
@@ -162,6 +175,7 @@ width: 100px;
     height: 145px;
     border-radius: 5px;
     border: none;
+    left: 0;
 }  
 
 
@@ -291,7 +305,7 @@ transform: rotateY(180deg);
         transform: translate(0, 0);
     }
     100% {
-        transform: translate(550px, 180px);
+        transform: translate(600px, 180px); /* 580px, 180px */
     }
 }
 
@@ -336,7 +350,7 @@ transform: rotateY(180deg);
         transform: translate(580px, 180px);
     }
     100% {
-        transform: translate(var(--card-x-translate), 180px);
+        transform: translate(var(--flip-player-enemy-card-x-translate), 180px);
     }
 }
 
@@ -345,7 +359,7 @@ transform: rotateY(180deg);
         transform: translate(-580px, -180px);
     }
     100% {
-        transform: translate(var(--card-x-translate), -180px);
+        transform: translate(var(--flip-player-enemy-card-x-translate), -180px);
     }
 }
 
@@ -373,6 +387,15 @@ transform: rotateY(180deg);
     }
     100% {
         transform: rotateY(180deg);
+    }
+}
+
+@keyframes ridPlayerCard {
+    0% {
+        transform: translate(var(--rid-player-card-x-translate-start), var(--rid-player-card-y-translate-start));
+    }
+    100% {
+        transform: translate(var(--rid-player-card-x-translate-end), var(--rid-player-card-y-translate-end));
     }
 }
 

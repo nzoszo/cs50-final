@@ -12,6 +12,7 @@
     <button id="startGame" onclick="startGame()">Play!</button>
 
     <script>
+        let counter = 1;
         /* Create deck of cards */
         let deck = [];
         const suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
@@ -129,17 +130,19 @@
                 cardElement.style.animation = `${animation} 1s forwards`;
                 cardElement.style.animationDelay = `${index * 50}ms`; // trail effect
                 if (deckSize) {
+                    cardElement.classList.add(`${location}-deck`);
                     // Top 5 cards in deck
                     if (index >= 15) {
                         // Cards are staggered from 0px at x-coord
-                        cardElement.style.setProperty('--card-x-translate', `${(index - 17) * 80}px`);
-                        flip(cardElement, index, `${location}`);
+                        cardElement.classList.add(`${index - 15}`); // For card's placement in hand (0-5)
+                        cardElement.style.setProperty('--flip-player-enemy-card-x-translate', `${(index - 17) * 80}px`);
+                        flip(cardElement, `${location}`, index);
                     }
                 } else {
                     // Last card is played in middle
                     if (index == 5) {
                         setTimeout(() => {
-                            flip(cardElement, index, `${location}`);
+                            flip(cardElement, `${location}`, index);
                             cardElement.classList.add("center-card"); // Two center cards
                         }, 1000);
                     }
@@ -148,7 +151,16 @@
         };
 
         /* Helper function to flip cards */
-        function flip(cardElement, index, location) {
+        function flip(cardElement, location, index = 0) {
+            // Removes specific deck class after card is flipped
+            cardElement.classList.remove(`${location}-deck`);
+
+            // setTimeout variables
+            let animateMiddle = 1000;
+            let bgRemove = 1400;
+            let bgAdd = 10000;
+            let cardFlip = 800;
+            
             /* Card moves to middle */
             setTimeout(() => {
                 switch(location) {
@@ -157,7 +169,7 @@
                         break;
                     case "player":
                         cardElement.style.animation = 'flipPlayerCards 1s forwards';
-                        /* Allows player cards to be inspected */
+                        // Allows player cards to be inspected //
                         cardElement.classList.add("inspect");
                         break;
                     case "left":
@@ -166,79 +178,155 @@
                     case "right":
                         cardElement.style.animation = 'flipMiddleRight 1s forwards';
                         break;
+                    case "playerDeck":
+                        cardElement.style.animation = 'flipPlayerCards 1s forwards';
+                        // Allows player cards to be inspected //
+                        cardElement.classList.add("inspect");
+                        animateMiddle = 0;
+                        bgRemove = 400;
+                        cardFlip = 50;
                 }
-            }, 1000);
-            /* Enemy's cards will not be visible to player */
+            }, animateMiddle);
+
+            // Enemy's cards will not be visible to player */
             if (location == "enemy") {
                 return;
             }
-            /* Card background is removed */
+
+            // Card background is removed //
             setTimeout(() => {
                 cardElement.classList.add('flipped');
-                /* Card background is added back after card flips */
+                // Card background is added back after card flips //
                 setTimeout(() => {
                     cardElement.classList.remove('flipped');
-                }, 10000);
-            }, 1400);
-            /* Card is flipped to reveal suit and rank */
+                }, bgAdd);
+            }, bgRemove);
+
+            // Card is flipped to reveal suit and rank //
             setTimeout(() => {
                 cardElement.children[0].style.animation = 'flip 1s forwards';
                 cardElement.children[0].style.animationDelay = `${500}ms`; // trail effect
-            }, 800);
+            }, cardFlip);
 
+            // Any of the player's cards can be dragged //
             if (location == "player") {
                 dragCard(cardElement);
             }
         };
 
-        /* Helper function to drag cards*/
-        function dragCard(card) {
-            let isDragging = false;
-            let offsetX = 0;
-            let offsetY = 0;
+        /* Helper function to rid the card and "score a point" */
+        function ridCard(card, centerCard, zIndex, cardPosition) {
+            const deckContainer = document.getElementById("card-container");
+            const origin = deckContainer.getBoundingClientRect();
+            const rect = card.getBoundingClientRect();
+            const centerRect = centerCard.getBoundingClientRect();
 
-            let originalTop = card.offsetTop;
-            let originalLeft = card.offsetLeft;
-            // Clicking the card
-            card.addEventListener("mousedown", (e) => {
-                if (e.button === 0) { // Only if the left mouse button is clicked
-                    const centerCards = document.querySelectorAll(".center-card");
-                    if (centerCards.length < 2) {
-                        return;
+            const startX = rect.left - origin.left;
+            const startY = rect.top - origin.top;
+            const endX = centerRect.left - origin.left;
+            const endY = centerRect.top - origin.top;
+            console.log(rect.top, centerRect.top, origin.top);
+
+            console.log(`starX: ${startX}, startY: ${startY}, endX: ${endX}, endY: ${endY}`);
+
+            card.style.setProperty('--rid-player-card-x-translate-start', `${startX}px`);
+            card.style.setProperty('--rid-player-card-y-translate-start', `${startY}px`);
+            card.style.setProperty('--rid-player-card-x-translate-end', `${endX}px`);
+            card.style.setProperty('--rid-player-card-y-translate-end', `${endY + 10}px`);
+            card.style.zIndex = zIndex + 1;
+            card.style.animation = 'ridPlayerCard .3s forwards';
+
+            console.log(`zindex: ${zIndex}`)
+            console.log(`played card's zindex: ${card.style.zIndex}`);
+
+            // Get all player deck cards
+            const playerDeckCards = deckContainer.querySelectorAll(".player-deck");
+            
+            // If there are more cards left in the deck
+            if (playerDeckCards.length > 0) {
+                // Get the last card in the deck
+                const nextCardFlip = playerDeckCards[playerDeckCards.length - 1];
+
+                // Calculate its translationValue
+                const positions = [-160, -80, 0, 80, 160];
+                console.log(`index: ${cardPosition}`);
+                const translationValue = positions[cardPosition];
+
+                // Applies position class to newly flipped card (0-5)
+                nextCardFlip.classList.add(`${cardPosition }`);
+
+                // Apply the translation value dynamically
+                nextCardFlip.style.setProperty('--flip-player-enemy-card-x-translate', `${translationValue}px`);
+                nextCardFlip.style.zIndex = zIndex + 2;
+                console.log(`next card's zindex: ${nextCardFlip.style.zIndex}`);
+
+                // Flip the next card
+                flip(nextCardFlip, `playerDeck`);
+            }
+        }
+
+        /* Dragging Event Listeners */
+        // Define a state object to keep track of dragging state
+        const dragState = {
+            isDragging: false,
+            offsetX: 0,
+            offsetY: 0,
+            originalTop: 0,
+            originalLeft: 0,
+            draggedCard: null
+        };
+
+        // Clicking the card
+        function onMouseDown(e) {
+            if (e.button === 0) { // Only if the left mouse button is clicked
+                // Initialize drag state
+                dragState.isDragging = true;
+                dragState.offsetX = e.clientX - this.offsetLeft;
+                dragState.offsetY = e.clientY - this.offsetTop;
+                dragState.originalTop = this.offsetTop;
+                dragState.originalLeft = this.offsetLeft;
+                dragState.draggedCard = this; // Keeps reference to the dragged card
+
+                // Ensures dragged card is in front of all other elements (z-index)
+                this.classList.add("draggable");
+                document.querySelectorAll(".card.center-card").forEach(element => {
+                    element.classList.add("yellow-card-highlight");
+                });
+
+                // Attach event listeners to document for continuous tracking
+                document.addEventListener("mousemove", onMouseMove); 
+                document.addEventListener("mouseup", onMouseUp);
+            }
+        }
+
+        // Moving the card
+        function onMouseMove(e) {
+            if (dragState.isDragging) {
+                const card = dragState.draggedCard; // Use the stored reference
+                // Update card position based on mouse movement
+                card.style.top = `${e.clientY - dragState.offsetY}px`;
+                card.style.left = `${e.clientX - dragState.offsetX}px`;
+
+                // Check if dragged card is over a center card
+                const centerCards = document.querySelectorAll(".center-card");
+                for (const centerCard of centerCards) {
+                    if (isDraggingCardOverCenterCard(card, centerCard)) {
+                        // Add cyan highlight
+                        centerCard.classList.add("cyan-card-highlight");
+                    } else {
+                        // Remove cyan highlight
+                        centerCard.classList.remove("cyan-card-highlight");
                     }
-                    card.classList.add("draggable");
-                    isDragging = true;
-                    offsetX = e.clientX - card.offsetLeft;
-                    offsetY = e.clientY - card.offsetTop;
-
-                    document.querySelectorAll(".card.center-card").forEach(element => {
-                        element.classList.add("yellow-card-highlight");
-                    });
                 }
-            });
-            // Moving the card
-            document.addEventListener("mousemove", (e) => {
-                if (isDragging) {
-                    card.style.top = `${e.clientY - offsetY}px`;
-                    card.style.left = `${e.clientX - offsetX}px`;
+            }
+        }
 
-                    // Check if dragged card is over a center card
-                    const centerCards = document.querySelectorAll(".center-card");
-                    for (const centerCard of centerCards) {
-                        if (isDraggingCardOverCenterCard(card, centerCard)) {
-                            // Add cyan highlight
-                            centerCard.classList.add("cyan-card-highlight");
-                        } else {
-                            // Remove cyan highlight
-                            centerCard.classList.remove("cyan-card-highlight");
-                        }
-                    };
-                }
-            });
-            // Releasing the card
-            document.addEventListener("mouseup", (e) => {
-                card.classList.remove("draggable");
-                isDragging = false;
+        // Releasing the card
+        function onMouseUp(e) {
+            if (dragState.isDragging) {
+                const card = dragState.draggedCard; // Use the stored reference
+                card.classList.remove("draggable"); // Card is no longer in front of all others (z-index)
+                dragState.isDragging = false;
 
                 // Removes yellow highlight
                 document.querySelectorAll(".card.center-card").forEach(element => {
@@ -247,43 +335,70 @@
 
                 // Checks if card is playable
                 const centerCards = document.querySelectorAll(".center-card");
-                let cardCounter = 0;
                 for (const centerCard of centerCards) {
                     if (isDraggingCardOverCenterCard(card, centerCard)) { // If over center card
                         if (isCardPlayable(card, centerCard)) { // If playable
-                            cardCounter++;
-
                             // Add green highlight
                             centerCard.classList.add("green-card-highlight");
                             setTimeout(() => {
                                 centerCard.classList.remove("green-card-highlight");
                             }, 200);
-                            // Flip card onto center card
-                            ridCard(card, centerCard);
-                            if (cardCounter > 1) {
-                                console.log("two cards")
-                            }
                         } else { // If not playable
-                            cardCounter++;
-
                             centerCard.classList.add("red-card-highlight");
                             setTimeout(() => {
                                 centerCard.classList.remove("red-card-highlight");
                             }, 200);
-                            if (cardCounter > 1) {
-                                console.log("two cards")
-                            }
+                            
+                            // Remove the dragging event listener so card cannot be draggable
+                            removeDragEventListeners(card);
+
+                            // Access the classList
+                            const classList = Array.from(card.classList);
+
+                            // Find the class that is a single digit number and converts to an integer
+                            const singleDigitClass = parseInt(classList.find(className => /^\d$/.test(className)));
+                            ridCard(card, centerCard, counter, singleDigitClass);
+
+                            // Immediately remove "singleDigitClass" from played card
+                            card.classList.remove(`${parseInt(classList.find(className => /^\d$/.test(className)))}`);
+                             
+                            // Played card is now a center card while old center card is no longer one
+                            card.classList.add("center-card");
+                            centerCard.classList.remove("center-card");
+
+                            // Card can no longer be inspected
+                            card.classList.remove("inspect"); // Card can no longer be inspected
                         }
                         centerCard.classList.remove("cyan-card-highlight");
                     } else { // If not over center card
                         centerCard.classList.remove("cyan-card-highlight");
-                    };
-                };
+                    }
+                }
                 // Handles snap back 
-                card.style.top = `${originalTop}px`;
-                card.style.left = `${originalLeft}px`;
-            });
-        };
+                card.style.top = `${dragState.originalTop}px`;
+                card.style.left = `${dragState.originalLeft}px`;
+
+                // Increments counter (used for zIndex)
+                counter++;
+
+                // Remove event listeners from document
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+            }
+        }
+
+        /* Helper function to drag cards */
+        function dragCard(card) {
+            /* Dragging Event Listeners */
+            card.addEventListener("mousedown", onMouseDown); // Uses card so whenever user clicks on card
+        }
+
+        /* Removes dragging event listeners */
+        function removeDragEventListeners(card) {
+            card.removeEventListener("mousedown", onMouseDown);
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+        }
 
         /* Helper function to detect if mouse is over an element */
         function isDraggingCardOverCenterCard(draggedCard, centerCard) {
@@ -299,16 +414,11 @@
             )
         };
 
-        /* Helper function to rid the card and "score a point" */
-        function ridCard(card, targetCard) {
-            return true;
-        }
-
         /* Helper function to check if card is playable or not */
-        function isCardPlayable(card, targetCard) {
+        function isCardPlayable(card, centerCard) {
             // Gets rank of dragged card and center card
             const player = rankOfCard(card);
-            const target= rankOfCard(targetCard);
+            const target= rankOfCard(centerCard);
 
             /* True = playable, False = not playable */
             if (player === target) { // Equal
@@ -363,23 +473,3 @@
 
     </script>
 {% endblock %}
-
-<!--
-Whenever move cannot be made, players prompt each other to flip middle
-(For player: waiting for other player to respond)
-(For enemy: other player requests for a flip in the middle)
-
-player clicks personal deck for more
-
-
-Game Rules:
-Cards
-Players have to rid their deck by placing their cards on the middle 2 
-Flip over left and right cards if current decks are unplayable
-If players can't play, draw from personal deck
-Players can only have 5 cards max at all times
-Gamemodes:
-More than 2 players
-Can play more than one card at once
-Include joker cards as wild
--->
