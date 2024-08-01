@@ -17,24 +17,40 @@
         let deck = [];
         const suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
         const ranks = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
-        // Loops through suits and ranks
-        for (let suit of suits) {
-            for (let rank of ranks) {
-                // Assigns each "card" object with current suit, rank, and image
-                const card = {
-                    suit,
-                    rank,
-                    image: `../static/card_images/${rank.toLowerCase()}_of_${suit.toLowerCase()}.png`,
-                    back: `../static/card_images/card_backside.png`
+
+        /* Function to create cards */
+        function createDeck() {
+            // Loops through suits and ranks
+            for (let suit of suits) {
+                for (let rank of ranks) {
+                    // Assigns each "card" object with current suit, rank, and image
+                    const card = {
+                        suit,
+                        rank,
+                        image: `../static/card_images/${rank.toLowerCase()}_of_${suit.toLowerCase()}.png`,
+                        back: `../static/card_images/card_backside.png`
+                    };
+                    // Adds each card to a deck of cards
+                    deck.push(card);
                 };
-                // Adds each card to a deck of cards
-                deck.push(card);
             };
-        };
-        /* Stars with shuffled deck */
-        document.addEventListener("DOMContentLoaded", function() {
-            shuffle();
-        });
+        }
+
+        /* Only after page is loaded */
+        function initializeEventListeners() {
+            document.addEventListener("DOMContentLoaded", function() {
+                // Cards are created and shuffled
+                createDeck();
+                shuffle();
+                // Cards snap back if window changes etc.
+                document.addEventListener("visibilitychange", handleVisibilityChange);
+
+                // Prevent the default dragstart behavior
+                document.addEventListener('dragstart', function (e) {
+                    e.preventDefault(); // Prevents the ghost image from appearing
+                });
+            });
+        }
 
         /* Load and connect images to deck array */
         function loadCards() {
@@ -133,9 +149,14 @@
                     cardElement.classList.add(`${location}-deck`);
                     // Top 5 cards in deck
                     if (index >= 15) {
+                        // For card's placement in hand (0-5)
+                        let cardPosition = index - 15; 
+                        cardElement.classList.add(`position-${cardPosition}`); 
+                        cardElement.style.zIndex = cardPosition;
+
                         // Cards are staggered from 0px at x-coord
-                        cardElement.classList.add(`${index - 15}`); // For card's placement in hand (0-5)
-                        cardElement.style.setProperty('--flip-player-enemy-card-x-translate', `${(index - 17) * 80}px`);
+                        cardElement.style.setProperty('--flip-player-enemy-card-x-translate', `${(index - 17) * 80}px`); 
+                        console.log(`loaded in left: ${cardElement.style.left}px loaded in top: ${cardElement.style.top}px`)
                         flip(cardElement, `${location}`, index);
                     }
                 } else {
@@ -153,14 +174,20 @@
         /* Helper function to flip cards */
         function flip(cardElement, location, index = 0) {
             // Removes specific deck class after card is flipped
-            cardElement.classList.remove(`${location}-deck`);
+            cardElement.classList.remove(`${location.replace("Deck", "")}-deck`);
 
             // setTimeout variables
             let animateMiddle = 1000;
             let bgRemove = 1400;
-            let bgAdd = 10000;
-            let cardFlip = 800;
-            
+            let bgAdd = 1000;
+            let cardFlip = 800; 
+            if (location == "playerDeck") {
+                // Card from is picked up quicker
+                animateMiddle = 0;
+                bgRemove = 400;
+                cardFlip = 0;
+            }
+
             /* Card moves to middle */
             setTimeout(() => {
                 switch(location) {
@@ -182,9 +209,7 @@
                         cardElement.style.animation = 'flipPlayerCards 1s forwards';
                         // Allows player cards to be inspected //
                         cardElement.classList.add("inspect");
-                        animateMiddle = 0;
-                        bgRemove = 400;
-                        cardFlip = 50;
+                        break;
                 }
             }, animateMiddle);
 
@@ -209,31 +234,43 @@
             }, cardFlip);
 
             // Any of the player's cards can be dragged //
-            if (location == "player") {
+            if (location == "player" || location == "playerDeck") {
                 dragCard(cardElement);
             }
         };
 
         /* Helper function to rid the card and "score a point" */
         function ridCard(card, centerCard, zIndex, cardPosition) {
+            console.log(`centerCard: ${centerCard}`)
+
+            // If the position of the card is invalid, don't rid card and flip new card
+            if (isNaN(cardPosition) || cardPosition < 0 || cardPosition > 4) {
+                console.log("SKIPPED!")
+                return;
+            }
+
+            // Gets positioning of screen's center, player's card, and center card
             const deckContainer = document.getElementById("card-container");
-            const origin = deckContainer.getBoundingClientRect();
+            const origin = deckContainer.getBoundingClientRect(); // Center of screen
             const rect = card.getBoundingClientRect();
             const centerRect = centerCard.getBoundingClientRect();
 
+            // Space between left/top edge of card to center of screen
             const startX = rect.left - origin.left;
             const startY = rect.top - origin.top;
             const endX = centerRect.left - origin.left;
             const endY = centerRect.top - origin.top;
-            console.log(rect.top, centerRect.top, origin.top);
 
             console.log(`starX: ${startX}, startY: ${startY}, endX: ${endX}, endY: ${endY}`);
 
+            // Card is placed on top of previous center card
+            card.style.zIndex = zIndex + 1;
+
+            // Animates ridding card
             card.style.setProperty('--rid-player-card-x-translate-start', `${startX}px`);
             card.style.setProperty('--rid-player-card-y-translate-start', `${startY}px`);
             card.style.setProperty('--rid-player-card-x-translate-end', `${endX}px`);
-            card.style.setProperty('--rid-player-card-y-translate-end', `${endY + 10}px`);
-            card.style.zIndex = zIndex + 1;
+            card.style.setProperty('--rid-player-card-y-translate-end', `${endY}px`);
             card.style.animation = 'ridPlayerCard .3s forwards';
 
             console.log(`zindex: ${zIndex}`)
@@ -241,7 +278,7 @@
 
             // Get all player deck cards
             const playerDeckCards = deckContainer.querySelectorAll(".player-deck");
-            
+
             // If there are more cards left in the deck
             if (playerDeckCards.length > 0) {
                 // Get the last card in the deck
@@ -253,15 +290,37 @@
                 const translationValue = positions[cardPosition];
 
                 // Applies position class to newly flipped card (0-5)
-                nextCardFlip.classList.add(`${cardPosition }`);
+                nextCardFlip.classList.add(`position-${cardPosition}`);
 
                 // Apply the translation value dynamically
                 nextCardFlip.style.setProperty('--flip-player-enemy-card-x-translate', `${translationValue}px`);
-                nextCardFlip.style.zIndex = zIndex + 2;
+
+                // Next card's depth within player's hand remains consistent
+                nextCardFlip.style.zIndex = cardPosition;
                 console.log(`next card's zindex: ${nextCardFlip.style.zIndex}`);
 
                 // Flip the next card
-                flip(nextCardFlip, `playerDeck`);
+                flip(nextCardFlip, `playerDeck`);      
+            } else {
+                if (cardPosition > 0 && cardPosition < 3) {
+                    const cardToLeft = document.querySelector(`.card.position-${cardPosition - 1}.inspect`);
+
+                    cardToLeft.style.setProperty('--rid-player-card-x-translate-end', `${80}px`);
+                    cardToLeft.style.animation = 'fillPlayerHand .3s forwards';
+
+                    console.log(`cardPosition: ${cardPosition}`)
+                    console.log(cardToLeft);
+                }
+                else if (cardPosition == 3) {
+                    const cardToRight = document.querySelector(`.card.position-${cardPosition + 1}.inspect`);
+                    
+                    
+                    cardToRight.style.setProperty('--rid-player-card-x-translate-end', `${-80}px`);
+                    cardToRight.style.animation = 'fillPlayerHand .3s forwards';
+
+                    console.log(`cardPosition: ${cardPosition}`)
+                    console.log(cardToRight);
+                }
             }
         }
 
@@ -276,19 +335,37 @@
             draggedCard: null
         };
 
+        // Visibility change handler (e.g. changed tabs)
+        function handleVisibilityChange() {
+            // Handle card position reset or cleanup
+            if (document.hidden) {
+                if (dragState.isDragging) {
+                    // Snaps back card to original position
+                    const card = dragState.draggedCard;
+                    card.style.top = `${dragState.originalTop}px`;
+                    card.style.left = `${dragState.originalLeft}px`;
+                }
+            }
+        }
+
         // Clicking the card
         function onMouseDown(e) {
             if (e.button === 0) { // Only if the left mouse button is clicked
+                // Enables custom dragging by stopping default dragging (such as text selection)
+                e.preventDefault();
+
                 // Initialize drag state
                 dragState.isDragging = true;
                 dragState.offsetX = e.clientX - this.offsetLeft;
                 dragState.offsetY = e.clientY - this.offsetTop;
-                dragState.originalTop = this.offsetTop;
                 dragState.originalLeft = this.offsetLeft;
+                console.log(`OG TOP: ${dragState.originalTop}px OG LEFT: ${dragState.originalLeft}`);
                 dragState.draggedCard = this; // Keeps reference to the dragged card
 
-                // Ensures dragged card is in front of all other elements (z-index)
-                this.classList.add("draggable");
+                // Updates zIndex so card is on top
+                this.classList.add("zIndex-dragging");
+
+                // Highlights available center cards
                 document.querySelectorAll(".card.center-card").forEach(element => {
                     element.classList.add("yellow-card-highlight");
                 });
@@ -325,8 +402,9 @@
         function onMouseUp(e) {
             if (dragState.isDragging) {
                 const card = dragState.draggedCard; // Use the stored reference
-                card.classList.remove("draggable"); // Card is no longer in front of all others (z-index)
-                dragState.isDragging = false;
+                card.classList.remove("zIndex-dragging"); // Card is no longer in front of all others (z-index)
+                dragState.isDragging = false; // No longer dragging
+
 
                 // Removes yellow highlight
                 document.querySelectorAll(".card.center-card").forEach(element => {
@@ -349,18 +427,27 @@
                                 centerCard.classList.remove("red-card-highlight");
                             }, 200);
                             
-                            // Remove the dragging event listener so card cannot be draggable
+                            // Remove the dragging event listener so card cannot be zIndex-dragging
                             removeDragEventListeners(card);
 
-                            // Access the classList
+                            // Access the list of the card's classes
                             const classList = Array.from(card.classList);
+                            console.log(`card's list of classes: ${classList}`);
+                            console.log(`card's finding: ${classList.find(className => /^position-\d$/.test(className))}`)
 
-                            // Find the class that is a single digit number and converts to an integer
-                            const singleDigitClass = parseInt(classList.find(className => /^\d$/.test(className)));
-                            ridCard(card, centerCard, counter, singleDigitClass);
 
-                            // Immediately remove "singleDigitClass" from played card
-                            card.classList.remove(`${parseInt(classList.find(className => /^\d$/.test(className)))}`);
+                            // Find the first (and only) class that is a 'position-[digit]' and converts to an integer
+                            const singleDigitClass = classList.find(className => /^position-\d$/.test(className));
+
+                            // If it's a valid class and not undefined
+                            if (singleDigitClass) {
+                                console.log("undefined digit")
+                                const singleDigitInteger = parseInt(singleDigitClass.replace('position-', ''));
+
+                                ridCard(card, centerCard, counter, singleDigitInteger);
+                                // Immediately remove "singleDigitClass" from played card
+                                card.classList.remove(`position-${parseInt(classList.find(className => /^position-\d$/.test(className)).replace('position-', ''))}`);
+                            }
                              
                             // Played card is now a center card while old center card is no longer one
                             card.classList.add("center-card");
@@ -421,10 +508,7 @@
             const target= rankOfCard(centerCard);
 
             /* True = playable, False = not playable */
-            if (player === target) { // Equal
-                return false;
-            }
-            else if (player == 13 && target == 1) { // King < ace
+            if (player == 13 && target == 1) { // King < ace
                 return true;
             }
             else if (player - target == -1) { // Smaller by one
@@ -457,9 +541,9 @@
         }
 
         /* Helper function to convert face cards to numbers*/
-        function convertFaceToNumber(letter) {
+        function convertFaceToNumber(word) {
             // Integer-based values for face cards plus ace
-            switch(letter) {
+            switch(word) {
                 case "ace":
                     return 1;
                 case "jack":
@@ -470,6 +554,9 @@
                     return 13;
             };
         }
+
+        // Initialize event listeners after all variables and functions are created
+        initializeEventListeners();
 
     </script>
 {% endblock %}

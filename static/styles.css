@@ -176,6 +176,7 @@ background-color: purple;
     border-radius: 5px;
     border: none;
     left: 0;
+    top: 0;
 }  
 
 
@@ -236,9 +237,9 @@ transform: rotateY(180deg);
     box-shadow:0 0 20px 10px yellow;
 }
 
-.card.draggable {
+.card.zIndex-dragging {
     position: absolute;
-    z-index: 1000; /* Ensures card is on top of all others */
+    z-index: 1000 !important; /* Ensures card is on top of all others */
 }
 
 .center-card {
@@ -396,6 +397,12 @@ transform: rotateY(180deg);
     }
     100% {
         transform: translate(var(--rid-player-card-x-translate-end), var(--rid-player-card-y-translate-end));
+    }
+}
+
+@keyframes fillPlayerHand {
+    to {
+        transform: translateX(var(--rid=player-card-x-translate-end));
     }
 }
 
