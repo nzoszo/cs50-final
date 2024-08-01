@@ -400,12 +400,6 @@ transform: rotateY(180deg);
     }
 }
 
-@keyframes fillPlayerHand {
-    to {
-        transform: translateX(var(--rid=player-card-x-translate-end));
-    }
-}
-
 /* Size for brand */
 nav .navbar-brand {
 font-size: xx-large;
