@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Test</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            var socket = io();
+
+            socket.on('connect', function() {
+                console.log('Connected to server');
+                socket.emit('join', {username: 'Player1', room: 'GameRoom'});
+            });
+
+            socket.on('message', function(data) {
+                console.log('Received message: ' + data);
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from server');
+            });
+
+            function sendMessage() {
+                var message = document.getElementById('messageInput').value;
+                socket.send(message);
+            }
+
+            document.getElementById('sendButton').onclick = sendMessage;
+        });
+    </script>
+</head>
+<body>
+    <input id="messageInput" type="text" placeholder="Enter a message">
+    <button id="sendButton">Send</button>
+</body>
+</html>

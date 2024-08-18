@@ -2,7 +2,7 @@ from cs50 import SQL
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from helpers import apology, login_required
 
 # Configure application
@@ -10,6 +10,9 @@ app = Flask(__name__)
 
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+# Initialize SocketIO
+socketio = SocketIO(app, async_mode='eventlet')
 
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///36.db")
@@ -129,3 +132,43 @@ def register():
         return redirect("/")
 
     return render_template("register.html")
+
+@app.route("/socket", methods=["GET", "POST"])
+def socket():
+    return render_template("socket.html")
+
+# Client connects
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+# Client disconnects
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+# Client sends data
+@socketio.on('message')
+def handle_message(data):
+    print('Received message: ' + data)
+    send('Message received: ' + data)
+
+# Client joins room
+@socketio.on('join')
+def on_join(data):
+    username = data['username']
+    room = data['room']
+    join_room(room)
+    send(username + ' has entered the room.', to=room)
+
+# Client leaves room
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room)
+    send(username + ' has left the room.', to=room)
+
+# Debug mode
+if __name__ == "__main__":
+    socketio.run(app, debug=True)

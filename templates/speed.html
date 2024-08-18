@@ -65,12 +65,12 @@
             // Loads in new deck of cards
             deck.forEach((card, index) => {
                 // Creates each card element: card -> cardFlipper -> (cardFront -> cardFrontImage) & (cardBack -> cardBackImage)
-                const cardElement = cardLoader("div", "card");
-                const cardFlipper = cardLoader("div", "flip-card-inner", "", cardElement);
-                const cardFront = cardLoader("div", "flip-card-front", "", cardFlipper);
-                const cardFrontImage = cardLoader("img", "card-image", card.image, cardFront, cardFlipper);
-                const cardBack = cardLoader("div", "flip-card-back", "", cardFlipper);
-                const cardBackImage = cardLoader("img", "card-image", card.back, cardBack, cardFlipper);
+                const cardElement = assembleCard("div", "card");
+                const cardFlipper = assembleCard("div", "flip-card-inner", "", cardElement);
+                const cardFront = assembleCard("div", "flip-card-front", "", cardFlipper);
+                const cardFrontImage = assembleCard("img", "card-image", card.image, cardFront, cardFlipper);
+                const cardBack = assembleCard("div", "flip-card-back", "", cardFlipper);
+                const cardBackImage = assembleCard("img", "card-image", card.back, cardBack, cardFlipper);
 
                 // Appends each card to deck
                 cardElement.appendChild(cardFlipper)
@@ -79,7 +79,7 @@
         };
 
         /* Helper function to create card elements */
-        function cardLoader(elementType, className, source = "", parentNode, grandparentNode) {
+        function assembleCard(elementType, className, source = "", parentNode, grandparentNode) {
             // Creates element with class name
             const element = document.createElement(elementType);
             element.className = className;
