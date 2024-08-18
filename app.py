@@ -241,3 +241,4 @@ def handle_thirtysix_message(message):
 # Makes sure the app only runs when it is run directly (e.g. on my local device)
 if __name__ == "__main__":
     socketio.run(app)
+
