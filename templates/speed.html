@@ -42,6 +42,7 @@
                 // Cards are created and shuffled
                 createDeck();
                 shuffle();
+
                 // Cards snap back if window changes etc.
                 document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -55,6 +56,7 @@
         /* Load and connect images to deck array */
         function loadCards() {
             const cardContainer = document.getElementById("card-container");
+
             // Removes current deck of cards before loading new deck
             if (cardContainer.childElementCount > 0) {
                 cardContainer.innerHTML = "";
@@ -69,6 +71,7 @@
                 const cardFrontImage = cardLoader("img", "card-image", card.image, cardFront, cardFlipper);
                 const cardBack = cardLoader("div", "flip-card-back", "", cardFlipper);
                 const cardBackImage = cardLoader("img", "card-image", card.back, cardBack, cardFlipper);
+
                 // Appends each card to deck
                 cardElement.appendChild(cardFlipper)
                 cardContainer.appendChild(cardElement);
@@ -80,11 +83,14 @@
             // Creates element with class name
             const element = document.createElement(elementType);
             element.className = className;
+
             // If element is an image (e.g. cardFrontImage and cardBackImage)
             if (elementType === "img") {
                 element.src = source;
             }
+
             /* Handles appending */
+
             if (parentNode) {
                 parentNode.appendChild(element);
             }
@@ -148,20 +154,21 @@
                 if (deckSize) {
                     cardElement.classList.add(`${location}-deck`);
                     // Top 5 cards in deck
-                    if (index >= 15) {
-                        // For card's placement in hand (0-5)
+                    const firstFifteenCards = 15;
+                    if (index >= firstFifteenCards) {
+                        // For card's placement in hand (0-5), e.g. 15 - 15 = 0, 16 - 15 = 1... 19 - 15 = 4
                         let cardPosition = index - 15; 
                         cardElement.classList.add(`position-${cardPosition}`); 
                         cardElement.style.zIndex = cardPosition;
 
                         // Cards are staggered from 0px at x-coord
                         cardElement.style.setProperty('--flip-player-enemy-card-x-translate', `${(index - 17) * 80}px`); 
-                        console.log(`loaded in left: ${cardElement.style.left}px loaded in top: ${cardElement.style.top}px`)
                         flip(cardElement, `${location}`, index);
                     }
                 } else {
                     // Last card is played in middle
-                    if (index == 5) {
+                    const firstFiveCards = 5;
+                    if (index == firstFiveCards) {
                         setTimeout(() => {
                             flip(cardElement, `${location}`, index);
                             cardElement.classList.add("center-card"); // Two center cards
@@ -241,11 +248,10 @@
 
         /* Helper function to rid the card and "score a point" */
         function ridCard(card, centerCard, zIndex, cardPosition) {
-            console.log(`centerCard: ${centerCard}`)
-
             // If the position of the card is invalid, don't rid card and flip new card
-            if (isNaN(cardPosition) || cardPosition < 0 || cardPosition > 4) {
-                console.log("SKIPPED!")
+            const firstCard = 0;
+            const lastCard = 4;
+            if (isNaN(cardPosition) || cardPosition < firstCard || cardPosition > lastCard) {
                 return;
             }
 
@@ -261,8 +267,6 @@
             const endX = centerRect.left - origin.left;
             const endY = centerRect.top - origin.top;
 
-            console.log(`starX: ${startX}, startY: ${startY}, endX: ${endX}, endY: ${endY}`);
-
             // Card is placed on top of previous center card
             card.style.zIndex = zIndex + 1;
 
@@ -272,9 +276,6 @@
             card.style.setProperty('--rid-player-card-x-translate-end', `${endX}px`);
             card.style.setProperty('--rid-player-card-y-translate-end', `${endY}px`);
             card.style.animation = 'ridPlayerCard .3s forwards';
-
-            console.log(`zindex: ${zIndex}`)
-            console.log(`played card's zindex: ${card.style.zIndex}`);
 
             // Get all player deck cards
             const playerDeckCards = deckContainer.querySelectorAll(".player-deck");
@@ -286,7 +287,6 @@
 
                 // Calculate its translationValue
                 const positions = [-160, -80, 0, 80, 160];
-                console.log(`index: ${cardPosition}`);
                 const translationValue = positions[cardPosition];
 
                 // Applies position class to newly flipped card (0-5)
@@ -297,31 +297,10 @@
 
                 // Next card's depth within player's hand remains consistent
                 nextCardFlip.style.zIndex = cardPosition;
-                console.log(`next card's zindex: ${nextCardFlip.style.zIndex}`);
 
                 // Flip the next card
                 flip(nextCardFlip, `playerDeck`);      
-            } else {
-                if (cardPosition > 0 && cardPosition < 3) {
-                    const cardToLeft = document.querySelector(`.card.position-${cardPosition - 1}.inspect`);
-
-                    cardToLeft.style.setProperty('--rid-player-card-x-translate-end', `${80}px`);
-                    cardToLeft.style.animation = 'fillPlayerHand .3s forwards';
-
-                    console.log(`cardPosition: ${cardPosition}`)
-                    console.log(cardToLeft);
-                }
-                else if (cardPosition == 3) {
-                    const cardToRight = document.querySelector(`.card.position-${cardPosition + 1}.inspect`);
-                    
-                    
-                    cardToRight.style.setProperty('--rid-player-card-x-translate-end', `${-80}px`);
-                    cardToRight.style.animation = 'fillPlayerHand .3s forwards';
-
-                    console.log(`cardPosition: ${cardPosition}`)
-                    console.log(cardToRight);
-                }
-            }
+            } 
         }
 
         /* Dragging Event Listeners */
@@ -359,7 +338,6 @@
                 dragState.offsetX = e.clientX - this.offsetLeft;
                 dragState.offsetY = e.clientY - this.offsetTop;
                 dragState.originalLeft = this.offsetLeft;
-                console.log(`OG TOP: ${dragState.originalTop}px OG LEFT: ${dragState.originalLeft}`);
                 dragState.draggedCard = this; // Keeps reference to the dragged card
 
                 // Updates zIndex so card is on top
@@ -406,12 +384,13 @@
                 dragState.isDragging = false; // No longer dragging
 
 
-                // Removes yellow highlight
+                // Removes highlights
                 document.querySelectorAll(".card.center-card").forEach(element => {
                     element.classList.remove("yellow-card-highlight");
+                    element.classList.remove("cyan-card-highlight");
                 });
 
-                // Checks if card is playable
+                // Gets center cards
                 const centerCards = document.querySelectorAll(".center-card");
                 for (const centerCard of centerCards) {
                     if (isDraggingCardOverCenterCard(card, centerCard)) { // If over center card
@@ -421,27 +400,18 @@
                             setTimeout(() => {
                                 centerCard.classList.remove("green-card-highlight");
                             }, 200);
-                        } else { // If not playable
-                            centerCard.classList.add("red-card-highlight");
-                            setTimeout(() => {
-                                centerCard.classList.remove("red-card-highlight");
-                            }, 200);
-                            
+         
                             // Remove the dragging event listener so card cannot be zIndex-dragging
                             removeDragEventListeners(card);
 
                             // Access the list of the card's classes
                             const classList = Array.from(card.classList);
-                            console.log(`card's list of classes: ${classList}`);
-                            console.log(`card's finding: ${classList.find(className => /^position-\d$/.test(className))}`)
-
 
                             // Find the first (and only) class that is a 'position-[digit]' and converts to an integer
                             const singleDigitClass = classList.find(className => /^position-\d$/.test(className));
 
                             // If it's a valid class and not undefined
                             if (singleDigitClass) {
-                                console.log("undefined digit")
                                 const singleDigitInteger = parseInt(singleDigitClass.replace('position-', ''));
 
                                 ridCard(card, centerCard, counter, singleDigitInteger);
@@ -455,10 +425,17 @@
 
                             // Card can no longer be inspected
                             card.classList.remove("inspect"); // Card can no longer be inspected
+
+                            // In case card is hovering over both center cards, it is played on the first one
+                            break;
+                        } 
+
+                        else { // If not playable
+                            centerCard.classList.add("red-card-highlight");
+                            setTimeout(() => {
+                                centerCard.classList.remove("red-card-highlight");
+                            }, 200);
                         }
-                        centerCard.classList.remove("cyan-card-highlight");
-                    } else { // If not over center card
-                        centerCard.classList.remove("cyan-card-highlight");
                     }
                 }
                 // Handles snap back 
@@ -507,17 +484,20 @@
             const player = rankOfCard(card);
             const target= rankOfCard(centerCard);
 
+            const ace = 1;
+            const king = 13;
+
             /* True = playable, False = not playable */
-            if (player == 13 && target == 1) { // King < ace
+            if (player == king && target == ace) { // King < ace
                 return true;
             }
-            else if (player - target == -1) { // Smaller by one
+            else if (target - player == ace) { // Smaller by one
                 return true;
             }
-            else if (player == 1 && target == 13) { // Ace > king
+            else if (player == ace && target == king) { // Ace > king
                 return true;
             }
-            else if (player - target == 1) { // Bigger by one
+            else if (player - target == ace) { // Bigger by one
                 return true;
             }
             else { // Anything else
