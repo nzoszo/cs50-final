@@ -67,18 +67,6 @@ font-size: 2rem;
 font-weight: 700;
 }
 
-#clip {
-animation: play-clip 3s linear infinite;
-}
-
-@keyframes play-clip {
-0% {
-    animation-play-state: running;
-}
-100% {
-    animation-play-state: running;
-}
-}
 
 th#playerOne {
 border-bottom: 1px solid;

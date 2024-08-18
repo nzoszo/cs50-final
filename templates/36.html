@@ -6,31 +6,27 @@
 
 {% block main %}
     <!-- Create a div element to hold the instruction screen -->
-    <div id="instruction-screen" data-backdrop="static">
+    <!-- <div id="instruction-screen" data-backdrop="static"> -->
         <!-- Add your instruction text or content here -->
-        <div id="instruction">How To Play</div>
-        <div id="game-type">Game Type: Take Turns</div>
+        <!-- <div id="instruction">How To Play</div>
+        <div id="game-type">Game Type: Take Turns</div> -->
 
-        <h3 id="instruction-goal">Outsmart your opponent and gain more points than them.</h3>
+        <!-- <h3 id="instruction-goal">Outsmart your opponent and gain more points than them.</h3>
         <ul>
             <li>When a player picks a number, that number is added to the player's score and removed from the grid.</li>
             <li>All of its factors (e.g. 2 and 3 for 6), however, will be added to the other player's score and also removed.</li>
             <li><b>NOTE: </b>Only factors available on the grid can be added.</li>
             <li>The player with the higher score when all numbers are used wins!</li>
-        </ul>
+        </ul> -->
         <!-- <p>Players take turns picking numbers from the 6x6 
             grid with the aim of having the highest number of points at the end. 
             When a player picks a number, that number is added to the player's points 
             and is removed from the grid. Any factors of that number, however, will be 
             added to the opposing player's points and also be removed from the grid.</p>
         <p>Player 1's turn is green, and Player 2's turn is red.</p> -->
-        <video id="instruction-clip" width="100%" height="60%" autoplay loop muted>
-            <source src="../static/instruction-clip.mp4" type="video/mp4">
-            Your broswer does not support the video tag.
-        </video>
         <!-- Add a button to start the game -->
-        <button id="start-game">Start Game</button>
-    </div>
+        <!-- <button id="start-game">Start Game</button>
+    </div>   -->
 
     <div id="turnDisplay">It's <span id="playerTurn" style="color: green;">Player 1's</span> turn</div>
 
@@ -59,56 +55,107 @@
         </tr>
     </table>
 
+    <!-- Include Socket.IO -->
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
     <script>
-        // Show the instruction screen when the page loads
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("instruction-screen").style.display = "block";
+        // Connects to Socket.IO
+        const socket = io();
+
+        // Handles connection
+        socket.on('connect', () => {
+            console.log('Connected to server');
         });
 
-        // Hide the instruction screen when the start game button is clicked
-        document.getElementById("start-game").addEventListener("click", function() {
-            document.getElementById("instruction-screen").style.display = "none";
+        // Handles disconnection
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
         });
 
-        let numbers = [];
-        for (let i = 0; i < 36; i++) {
-            numbers.push(i + 1);
+        // Initializes game
+        socket.on('init', (initalGameState) => {
+            // This event handler is called when the server sends the initial game state
+            // The client should render the game state on the screen
+            console.log("INIT up and running")
+            initalizeGame(initalGameState);
+        });
+
+        // Updates game state with new player turn
+        socket.on('update_state', (updatedGameState) => {
+            // This event handler is called whenever the server sends an updated game state
+            // The client should update the UI with the new game state
+            turnChange(updatedGameState);
+        });
+
+        // Handles end of the game
+        socket.on('game_end', (data) => {
+            // This event handler is called when the game ends and the server sends the winner's information
+            // The client should display the winner to the players
+            alert(`Game Over! The winner is ${data.winner}`);
+        });
+
+        // // Show the instruction screen when the page loads
+        // document.addEventListener("DOMContentLoaded", function() {
+        //     document.getElementById("instruction-screen").style.display = "block";
+        // });
+
+        // // Hide the instruction screen when the start game button is clicked
+        // document.getElementById("start-game").addEventListener("click", function() {
+        //     document.getElementById("instruction-screen").style.display = "none";
+        // });
+
+        /* Loads in game */
+        function initalizeGame(gameState) {
+            console.log("game initizalized")
+            // Creates a new array from 1-36
+            let numbers = gameState["grid"];
+
+            // Declares each players' scores and current player
+            let playerOneScore = gameState["scores"]["player1"];
+            let playerTwoScore = gameState["scores"]["player2"];
+            let currentPlayer = gameState["current_turn"]; 
+            console.log("still init")
+            // Handles event listeners
+            document.addEventListener("DOMContentLoaded", function() {
+                console.log("DOM FULLY LOADED")
+                var numberElements = document.getElementsByClassName("number");
+                console.log("Number elements found:", numberElements);
+                for (var i = 0; i < numberElements.length; i++) {
+                    numberElements[i].addEventListener("click", playClickSound);
+                    numberElements[i].addEventListener("click", handleClick);
+                };
+            });
         }
-        let currentPlayer = 1; 
-        let playerOneScore = 0;
-        let playerTwoScore = 0;
 
-        document.addEventListener("DOMContentLoaded", function() {
-            var numberElements = document.getElementsByClassName("number");
-            for (var i = 0; i < numberElements.length; i++) {
-                numberElements[i].addEventListener("click", playClickSound);
-                numberElements[i].addEventListener("click", handleClick);
-            };
-        });
         /* Removes the number from being clicked anymore */
         function handleClick(event) {
-            if (event.target.innerHTML !== "") {
+            // Removes physical number
+            if (event.target.classList.contains('number')) {
                 event.target.innerHTML = "";
+
+                // Removes number's event listeners
                 event.target.removeEventListener("click", handleClick);
                 event.target.removeEventListener("click", playClickSound);
-                turnChange(event.target);
+                
+                const number = parseInt(event.target.dataset.value);  // Get the number that was clicked
+                socket.emit('number_selected', number);  // Emit the number selected to the server
+                // // // Changes turn
+                // turnChange(event.target);
             };
         };
-        /* Plays Click Sound Effect */
-        function playClickSound() {
-            const audio = document.getElementById("click-sound"); 
-            audio.play();
-        }
 
-        function turnChange(numberElement) {
-            let number = parseInt(numberElement.dataset.value); // Converts element to integer
+        function turnChange(gameState) {
+            let number = gameState["number_clicked"];
+
             /* Modifies array */
             const index = numbers.indexOf(number);
             if (index > -1) {
                 numbers.splice(index, 1);
             }
-            /* Add raw number to player's score */
+
+            // Add raw number to player's score 
             currentPlayer === 1 ? playerOneScore += number : playerTwoScore += number;
+
             /* Remove factors from table and add to enemy's score */
             const factors = [...numbers];
             for (i = 0; i < factors.length; i++) {     
@@ -173,5 +220,12 @@
                     });
             };
         };
+        
+        /* Plays Click Sound Effect */
+        function playClickSound() {
+            const audio = document.getElementById("click-sound"); 
+            audio.play();
+        }
+
     </script>
 {% endblock %}
