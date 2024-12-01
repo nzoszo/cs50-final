@@ -1,7 +1,9 @@
 import os
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
+import random
+import string
 from cs50 import SQL
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required
@@ -35,17 +37,22 @@ def thirty_six():
 @login_required
 def thirty_six_end():
     """ Decides winner and returns scores """
-    playerOneScore = request.form.get("playerOneScore")
-    playerTwoScore = request.form.get("playerTwoScore")
+    room = request.form.get("room")
+    playerOneScore = int(request.form.get("playerOneScore"))
+    playerTwoScore = int(request.form.get("playerTwoScore"))
+    role = int(request.form.get("role"))
+    opponent = "Player 2" if role == 1 else "Player 1"
 
-    difference = int(playerTwoScore) - int(playerOneScore)
-    winner = "Player Two"
+    # Removes game room
+    game_rooms.pop(room, "Room does not exist")
+    
+    # In case scores aren't transmitted
+    if playerOneScore is None or playerTwoScore is None:
+        return "Error: Missing score data", 400
 
-    if int(playerOneScore) > int(playerTwoScore):
-        winner = "Player One"
-        difference = int(playerOneScore) - int(playerTwoScore)
+    difference = abs(playerOneScore - playerTwoScore)
 
-    return render_template("36end.html", difference=difference, playerOneScore=playerOneScore, playerTwoScore=playerTwoScore, winner=winner)
+    return render_template("36end.html", difference=difference, playerOneScore=playerOneScore, playerTwoScore=playerTwoScore, role=role, opponent=opponent)
 
 @app.route("/speed", methods=["GET", "POST"])
 @login_required
@@ -140,105 +147,126 @@ def register():
 
 # 36 game
 
+# Dictionary to store game rooms
+game_rooms = {}
+
+@app.route("/create_room")
+@login_required
+def create_room():
+    # Generate a random 6-character room code
+    room_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    
+    # Initialize the room in the game_rooms dictionary
+    game_rooms[room_code] = {
+        'players': [],      # List to store player session IDs
+        'roles': {},        # Maps session IDs to player1 or player2 
+        'game_state': None  # Will store the game state once the game starts
+    }
+    
+    # Render the room template, passing the room code
+    return render_template("room.html", room_code=room_code)
+
+@app.route("/join_room/<room_code>")
+@login_required
+def join_room_route(room_code):
+    # Check if the room exists
+    if room_code in game_rooms:
+        # If it does, render the room template
+        return render_template("room.html", room_code=room_code)
+    else:
+        # If it doesn't, return a 404 error
+        return "Room not found", 404
+
 @socketio.on('join_room')
-def join_thirtysix_room(data):
+def on_join(data):
+    # Gets the room code
     room = data['room']
-    player = session.get('player')
-    join_room(room)
-    emit('room_joined', {'player': player}, room=room)
+    print(f"I AM {room}")
+
+    # Check if the room exists and has less than 2 players
+    if room in game_rooms and len(game_rooms[room]['players']) < 2:
+        # Add the player to the room
+        join_room(room)
+        # Add the player's session ID to the room's player list
+        game_rooms[room]['players'].append(request.sid)
+        
+        # Assign role based on join order
+        if len(game_rooms[room]['players']) == 1:
+            game_rooms[room]['roles'][request.sid] = 1
+        elif len(game_rooms[room]['players']) == 2:
+            game_rooms[room]['roles'][request.sid] = 2
+
+        print(f"Player {game_rooms[room]['roles'][request.sid]} joined room {room}")
+
+        # Emit an update to all players in the room with the number of players in the room
+        emit('room_update', {'players': len(game_rooms[room]['players'])}, room=room)
+        # If the room now has 2 players, start the game
+        if len(game_rooms[room]['players']) == 2:
+            # Emit the 'start_game' event to all players in the room
+            emit('start_game', {
+                'roles': game_rooms[room]['roles']
+            }, room=room)
+
+# Helper function to initialize game state
+def initialize_game_state():
+    return {
+        'grid': list(range(1, 37)),
+        'scores': {'player1': 0, 'player2': 0},
+        'current_turn': 'player1'
+    }
+
+@socketio.on('make_selection')
+def handle_selection(data):
+    # Room, game selected, and dictionary of roles
+    room = data.get('room')
+    selection = data.get('selection')
+    roles = data.get('roles')
+
+    if selection == 'thirty_six':
+        emit('redirect', {
+            'room': room,
+            'redirect': "/36",
+            'roles': roles
+            }, room=room)
+    elif selection == 'speed':
+        emit('redirect', {
+            'room': room,
+            'redirect': "/speed",
+            'roles': roles
+            }, room=room)
 
 @socketio.on('start_game')
 def start_game(data):
-    room = data['room']
-    # Initialize game state for the room
-    emit('init', game_state, room=room)
+    # Gets room
+    room = data.get('room')
 
-# Initialize the game state
-game_state = {
-    'grid': list(range(1, 37)),  # Create a list of numbers from 1 to 36 for the grid
-    'scores': {'player1': 0, 'player2': 0},  # Set initial scores for both players to 0
-    'current_turn': 'player1',  # Start with Player 1's turn
-    'number_clicked': 0 # Stores the number clicked
-}
+    # Initializes game state
+    game_rooms[room]['game_state'] = {
+        'grid': list(range(1, 37)),
+        'scores': {1: 0, 2: 0},
+        'current_turn': 1
+    }
+    print(f"start game wit room: {room} and gameState: {game_rooms[room]['game_state']}")
 
-@socketio.on('connect')
-def handle_thirysix_connect():
-    """
-    This function is called when a client connects to the server.
-    It assigns the player as 'player1' or 'player2' based on the current turn.
-    It also emits the initial game state to all connected clients.
-    """
-    print('A player connected')  # Print a message to the server console
+    emit("load_game", {
+        "room": room,
+        "gameState": game_rooms[room]['game_state']
+    }, broadcast=True)
 
-    # Check if the player is already assigned in their session
-    if 'player' not in session:
-        # Assign the player based on the current turn
-        session['player'] = 'player1' if game_state['current_turn'] == 'player1' else 'player2'
+@socketio.on('update_game_state')
+def update_game_state(game_state):
+    room = game_state.get("room")
+    print(f"I am updated room: {room}")
+    emit('game_state_updated', game_state, broadcast=True)
     
-    # Emit the initial game state to all connected clients (broadcast)
-    emit('init', game_state, broadcast=True)
-
-@socketio.on('number_selected')
-def handle_number_selected(number):
-    """
-    This function handles when a player selects a number.
-    It updates the game state, switches turns, and emits the updated state to all clients.
-    """
-    player = session['player']  # Get the current player from the session
-    game_state["number_clicked"] = number; # Set the number clicked
-
-    # Ensure that only the player whose turn it is can make a move
-    if game_state['current_turn'] != player:
-        return  # If it's not this player's turn, do nothing
-
-    # Remove the selected number from the grid
-    game_state['grid'].remove(number)
-    # Add the selected number to the current player's score
-    game_state['scores'][player] += number
-
-    # Determine the opponent
-    opponent = 'player2' if player == 'player1' else 'player1'
-    
-    # Find factors of the selected number that are still on the grid
-    factors = [n for n in game_state['grid'] if number % n == 0]
-    """
-    Explanation of the line above:
-    - This is a list comprehension.
-    - It iterates over each number `n` in `game_state['grid']`.
-    - It checks if `number % n == 0`, which means `n` is a factor of `number`.
-    - If `n` is a factor, it is included in the list `factors`.
-    - This list contains all the factors of the selected number that are still available on the grid.
-    """
-
-    for factor in factors:
-        # Remove each factor from the grid
-        game_state['grid'].remove(factor)
-        # Add the factor's value to the opponent's score
-        game_state['scores'][opponent] += factor
-
-    # Switch the turn to the opponent
-    game_state['current_turn'] = opponent
-
-    # Emit the updated game state to all connected clients (broadcast)
-    emit('update_state', game_state, broadcast=True)
-
-    # Check if the game has ended (i.e., no numbers left on the grid)
-    if not game_state['grid']:
-        # Determine the winner based on who has the higher score
-        winner = 'player1' if game_state['scores']['player1'] > game_state['scores']['player2'] else 'player2'
-        # Emit the game end event with the winner's information
-        emit('game_end', {'winner': winner}, broadcast=True)
 
 @socketio.on('disconnect')
 def handle_thirtysix_disconnect():
     print('Client disconnected')
 
-@socketio.on('message')
-def handle_thirtysix_message(message):
-    print(f'Received message: {message}')
-    emit('message', message, broadcast=True)
+# host = os.getenv("FLASK_HOST", "127.0.0.1")  # Default to localhost
 
 # Makes sure the app only runs when it is run directly (e.g. on my local device)
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app, debug=True)
 

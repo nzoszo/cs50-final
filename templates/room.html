@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block main %}
+
+<h2>Room Code: {{ room_code }}</h2>
+<div id="waiting">Waiting for opponent...</div>
+<div id="game" style="display: none;">
+    <!-- Your existing game HTML here -->
+    <a class="game_toggle" id="thirty_six_option">36</a>
+    <a class="game_toggle" id="speed_option">Speed!</a>
+    <a class="game_toggle" id="word_world_option">Word World</a>
+</div>
+
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+    // Initialize Socket.IO
+    const socket = io();
+    
+    // Get the room code from the server-rendered template
+    const room = "{{ room_code }}";
+    console.log(`room is: ${room}`);
+
+    // When the socket connects, join the room
+    socket.on('connect', () => {
+        socket.emit('join_room', {"room": room});
+        console.log("connected");
+        console.log(`joining room: ${room}`)
+    });
+
+    socket.on('message', (data) => {
+        console.log(data.data);
+    });
+
+    // Handle connection error
+    socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+    });
+
+    // Handle room updates (e.g., when a player joins)
+    socket.on('room_update', (data) => {
+        console.log('Room update received:', data);
+    });
+
+    // Handle game start
+    socket.on('start_game', (data) => {
+        document.getElementById('waiting').style.display = 'none'; // Removes waiting...
+
+        // Defines roles from server-sent data package
+        const roles = data.roles;
+
+        // Determine the client's role
+        const clientRole = roles[socket.id];
+        console.log(`You are Player ${clientRole}`);
+
+        if (clientRole == 1) {
+            document.getElementById('game').style.display = 'block';
+
+            // Defines 36 and speed button options
+            let thirty_six_option = document.getElementById('thirty_six_option');
+            let speed_option = document.getElementById('speed_option');
+
+            // Selects game clicked
+
+            thirty_six_option.addEventListener('click', () => {
+                console.log("CLICKED 36");
+                socket.emit('make_selection', {
+                    'room': room,
+                    'selection': 'thirty_six',
+                    'roles': roles
+                });
+            });
+
+            speed_option.addEventListener('click', () => {
+                console.log("CLICKED Speed");
+                socket.emit('make_selection', {
+                    'room': room,
+                    'selection': 'speed',
+                    'roles': roles
+                });
+            });
+        }
+    });
+
+    socket.on('redirect', (data) => {
+        // Gets room, redirect link, and dictionary of roles
+        const room = data.room;
+        const redirect = data.redirect;
+        const roles = data.roles;
+
+        // Identifies client based on session.id in dictionary of roles
+        const clientRole = roles[socket.id];
+
+        console.log(`room: ${room} and redirect: ${redirect} and currentPlayer: ${clientRole}`)
+
+        // Redirects user to selected game with role in the URL
+        window.location.replace(`${redirect}?role=${clientRole}&room=${room}`);
+    });
+</script>
+
+{% endblock %}

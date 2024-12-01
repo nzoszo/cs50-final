@@ -33,7 +33,7 @@ background-color: #f7f7f7; /* light gray background */
 }
 
 /* Style the instruction screen to be centered */
-#instruction-screen {
+/* #instruction-screen {
 position: absolute;
 top: 50%;
 left: 50%;
@@ -47,17 +47,17 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 width: 50%;
 height: 80%;
 z-index: 100;
-}
+} */
 
 /* Style the instruction and game-type elements */
-#instruction, #game-type {
+/* #instruction, #game-type {
 display: inline-block; /* changed from inline to inline-block */
-font-size: 24px;
-text-align: center; /* added to center the text */
-margin: 0 20px; /* added to add some space between the elements */
-}
+/* font-size: 24px; */
+/* text-align: center; added to center the text */
+/* margin: 0 20px; added to add some space between the elements */
+/* } */
 
-#instruction {
+/* #instruction {
 font-size: 2rem;
 font-weight: 700;
 }
@@ -65,7 +65,7 @@ font-weight: 700;
 #game-type {
 font-size: 2rem;
 font-weight: 700;
-}
+} */
 
 
 th#playerOne {
@@ -94,6 +94,9 @@ height: 50px; /* set a fixed height for the numbers */
 font-size: 22px;
 display: inline-block; /* make the numbers inline-block */
 margin: 10px; /* add some margin between numbers */
+user-select: none; /* Prevents highlighting numbers */
+-webkit-user-select: none; /* For Safari */
+-ms-user-select: none; /* For older IE */
 }
 
 .number:hover {
@@ -109,6 +112,7 @@ background-color: #aaa; /* darker gray background on click */
 font-size: 24px;
 font-weight: bold;
 margin-bottom: 20px;
+width: 25%;
 }
 
 #playerOne {
@@ -130,18 +134,25 @@ color: #333; /* dark gray text */
 }
 
 .factor-animation {
-position: absolute;
-top: -20px;
-animation: fadeOut 1.5s forwards;
+    position: absolute;
+    top: -20px;
+    animation: fadeOut 1.5s forwards;
+    visibility: visible;
 }
 
 @keyframes fadeOut {
-0% {
-    opacity: 1;
-}
-100% {
-    opacity: 0;
-}
+    0% {
+        opacity: 1;
+        transform: translateY(0); /* Start position */
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-20px); /* Move upwards halfway through */
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-40px); /* End position */
+    }
 }
 
 /* Speed */

@@ -4,8 +4,43 @@
     Good Luck
 {% endblock %}
 
-{% block main %}
-    <div>{{ winner }} wins by {{ difference }} points!</div>
-    <div>Player One: {{ playerOneScore }} points</div>
-    <div>Player Two: {{ playerTwoScore }} points</div>
+{% block main %}    
+    <!-- If Player 1 -->
+    {% if role == 1 %}
+        <!-- Player 1 wins -->
+        {% if playerOneScore > playerTwoScore %}
+            <div>You won by {{difference}} points!</div>
+            <div>You: {{ playerOneScore }} points</div>
+            <div>{{ opponent }}: {{ playerTwoScore }} points</div>
+        <!-- Player 1 loses -->
+        {% elif playerOneScore < playerTwoScore %}
+            <div>You lost by {{difference}} points.</div>
+            <div>You: {{ playerOneScore }} points</div>
+            <div>{{ opponent }}: {{ playerTwoScore }} points</div>
+        {% else %}
+        <!-- Tie -->
+            <div>Tie!</div>
+            <div>You: {{ playerOneScore }} points</div>
+            <div>{{ opponent }}: {{ playerTwoScore }} points</div>
+        {% endif %}
+    <!-- If Player 2 -->
+    {% else %}       
+        <!-- Player 2 wins --> 
+        {% if playerOneScore < playerTwoScore %}
+            <div>You won by {{ difference }} points!</div>
+            <div>{{ opponent }}: {{ playerOneScore }} points</div>
+            <div>You: {{ playerTwoScore }} points</div>
+        <!-- Player 2 loses --> 
+        {% elif playerOneScore > playerTwoScore %}
+            <div>You lost by {{difference}} points.</div>
+            <div>{{ opponent }}: {{ playerOneScore }} points</div>
+            <div>You: {{ playerTwoScore }} points</div>
+        <!-- Tie -->
+        {% else %}
+            <div>Tie!</div>
+            <div>{{ opponent }}: {{ playerOneScore }} points</div>
+            <div>You: {{ playerTwoScore }} points</div>
+        {% endif %}
+
+    {% endif %}
 {% endblock %}

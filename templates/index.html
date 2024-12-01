@@ -5,5 +5,29 @@
 {% endblock %}
 
 {% block main %}
+    <a href="/create_room">
+        <button class="create_room_button">Create Room!</button>
+    </a>
 
+    <form id="joinForm">
+        <input type="text" id="join_code" placeholder="Join Code" required>
+        <button type="submit">Join!</button>
+    </form>
+
+    <script>
+        // When join button is clicked (form submitted)
+        document.getElementById("joinForm").addEventListener("submit", function() {
+            // Stops form from submitting traditionally because we want to redirect
+            event.preventDefault(); 
+
+            // Extracts join code
+            const joinCode = document.getElementById("join_code").value;
+
+            // Constructs url to be redirected to
+            const url = `http://127.0.0.1:5000/join_room/${joinCode}`;
+
+            // Redirect user to room
+            window.location.href = url;
+        });
+    </script>
 {% endblock %}
