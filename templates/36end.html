@@ -4,43 +4,52 @@
     Good Luck
 {% endblock %}
 
-{% block main %}    
+{% block main %}
+<div class="end_screen_container">
     <!-- If Player 1 -->
     {% if role == 1 %}
         <!-- Player 1 wins -->
         {% if playerOneScore > playerTwoScore %}
-            <div>You won by {{difference}} points!</div>
-            <div>You: {{ playerOneScore }} points</div>
-            <div>{{ opponent }}: {{ playerTwoScore }} points</div>
+            <p class="end_screen_header">Victory!</p>
+            <div class="end_screen_text">You won by {{difference}} points!</div>
+            <div class="end_screen_text"><span class="player">You: </span>{{ playerOneScore }} points</div>
+            <div class="end_screen_text"><span class="opponent">{{ opponent }}: </span>{{ playerTwoScore }} points</div>
         <!-- Player 1 loses -->
         {% elif playerOneScore < playerTwoScore %}
-            <div>You lost by {{difference}} points.</div>
-            <div>You: {{ playerOneScore }} points</div>
-            <div>{{ opponent }}: {{ playerTwoScore }} points</div>
+            <p class="end_screen_header">Defeat!</p>
+            <div class="end_screen_text">You lost by {{difference}} points.</div>
+            <div class="end_screen_text"><span class="player">You: </span>{{ playerOneScore }} points</div>
+            <div class="end_screen_text"><span class="opponent">{{ opponent }}: </span>{{ playerTwoScore }} points</div>
         {% else %}
         <!-- Tie -->
-            <div>Tie!</div>
-            <div>You: {{ playerOneScore }} points</div>
-            <div>{{ opponent }}: {{ playerTwoScore }} points</div>
+            <p class="end_screen_header">Tie!</p>
+            <div class="end_screen_text"><span class="player">You: </span>{{ playerOneScore }} points</div>
+            <div class="end_screen_text"><span class="opponent">{{ opponent }}: </span>{{ playerTwoScore }} points</div>
         {% endif %}
     <!-- If Player 2 -->
-    {% else %}       
+    {% else %}
         <!-- Player 2 wins --> 
         {% if playerOneScore < playerTwoScore %}
-            <div>You won by {{ difference }} points!</div>
-            <div>{{ opponent }}: {{ playerOneScore }} points</div>
-            <div>You: {{ playerTwoScore }} points</div>
+            <p class="end_screen_header">Victory!</p>
+            <div class="end_screen_text">You won by {{ difference }} points!</div>
+            <div class="end_screen_text"><span class="opponent">{{ opponent }}: </span>{{ playerOneScore }} points</div>
+            <div class="end_screen_text"><span class="player">You: </span>{{ playerTwoScore }} points</div>
         <!-- Player 2 loses --> 
         {% elif playerOneScore > playerTwoScore %}
-            <div>You lost by {{difference}} points.</div>
-            <div>{{ opponent }}: {{ playerOneScore }} points</div>
-            <div>You: {{ playerTwoScore }} points</div>
+            <p class="end_screen_header">Defeat!</p>
+            <div class="end_screen_text">You lost by {{difference}} points.</div>
+            <div class="end_screen_text"><span class="opponent">{{ opponent }}: </span>{{ playerOneScore }} points</div>
+            <div class="end_screen_text"><span class="player">You: </span>{{ playerTwoScore }} points</div>
         <!-- Tie -->
         {% else %}
-            <div>Tie!</div>
-            <div>{{ opponent }}: {{ playerOneScore }} points</div>
-            <div>You: {{ playerTwoScore }} points</div>
+            <p class="end_screen_header">Tie!</p>
+            <div class="end_screen_text">{{ opponent }}: {{ playerOneScore }} points</div>
+            <div class="end_screen_text"><span class="player">You: </span>{{ playerTwoScore }} points</div>
         {% endif %}
-
     {% endif %}
+
+    <a href="/">
+        <button class="new_game">New Game</button>
+    </a>
+</div>
 {% endblock %}

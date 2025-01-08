@@ -1,47 +1,42 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
 
-{% block title %}
-    36
-{% endblock %}
+<html lang="en">
 
-{% block main %}
-    <!-- Create a div element to hold the instruction screen -->
-    <!-- <div id="instruction-screen" data-backdrop="static"> -->
-        <!-- Add your instruction text or content here -->
-        <!-- <div id="instruction">How To Play</div>
-        <div id="game-type">Game Type: Take Turns</div> -->
+    <head>
 
-        <!-- <h3 id="instruction-goal">Outsmart your opponent and gain more points than them.</h3>
-        <ul>
-            <li>When a player picks a number, that number is added to the player's score and removed from the grid.</li>
-            <li>All of its factors (e.g. 2 and 3 for 6), however, will be added to the other player's score and also removed.</li>
-            <li><b>NOTE: </b>Only factors available on the grid can be added.</li>
-            <li>The player with the higher score when all numbers are used wins!</li>
-        </ul> -->
-        <!-- <p>Players take turns picking numbers from the 6x6 
-            grid with the aim of having the highest number of points at the end. 
-            When a player picks a number, that number is added to the player's points 
-            and is removed from the grid. Any factors of that number, however, will be 
-            added to the opposing player's points and also be removed from the grid.</p>
-        <p>Player 1's turn is green, and Player 2's turn is red.</p> -->
-        <!-- Add a button to start the game -->
-        <!-- <button id="start-game">Start Game</button>
-    </div>   -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
 
-    <div id="turnDisplay">It's <span id="playerTurn" style="color: green;"></span> turn</div>
+        <!-- http://getbootstrap.com/docs/5.3/ and socketIO -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 
-    <audio id="click-sound" src="../static/sfx/click-sound.mp3"></audio>
+        <link href="/static/styles.css" rel="stylesheet">
 
-    <!-- 6x6 Table -->
-    <table id="table">
-        {% for i in range(6) %}
-          <tr>
-            {% for j in range(6) %}
-              <td class="available number" data-value="{{ (i * 6) + j + 1 }}">{{ (i * 6) + j + 1 }}</td>
-            {% endfor %}
-          </tr>
-        {% endfor %}
-    </table>
+    </head>
+
+    <body>
+        <main class="game_container">
+            <a href="/">
+                <div id="returnButton">Back</div>
+            </a>
+            <div id="turnDisplay">It's <span id="playerTurn" style="color: green;"></span> turn</div>
+            
+            <audio id="click-sound" src="../static/sfx/click-sound.mp3"></audio>
+
+            <!-- 6x6 Table -->
+            <table id="table">
+                {% for i in range(6) %}
+                <tr>
+                    {% for j in range(6) %}
+                    <td class="available number" data-value="{{ (i * 6) + j + 1 }}">{{ (i * 6) + j + 1 }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </main>
+    </body>
 
     <!-- Scores -->
     <table id="t-chart">
@@ -147,6 +142,86 @@
             }
         };
 
+        /* Plays Click Sound Effect */
+        function playClickSound() {
+            const audio = document.getElementById("click-sound"); 
+            audio.play();
+        }
+
+
+        /* Removes the number from being clicked anymore */
+        function handleClick(event, gameState, currentTurn, currentPlayer) {
+            // Removes physical number
+            if (event.target.classList.contains('number')) {
+                // Gets the number that was clicked
+                const number = parseInt(event.target.dataset.value);
+
+                // Add the clicked number to the current player's score
+                gameState["scores"][currentPlayer] += number;
+                
+                // Remove the clicked number from the grid
+                const index = gameState["grid"].indexOf(number);
+                if (index > -1) {
+                    gameState["grid"].splice(index, 1);
+                }
+
+                // Generates list of factors of the clicked number
+                const factors = gameState["grid"].filter(value => number % value === 0);
+
+                // Add factors to opponent's score
+                factors.forEach((factor, index) => {
+                    // Adds factors to opponent's score
+                    gameState["scores"][opponent] += factor;
+
+                    // Removes factors from grid
+                    const factorIndex = gameState["grid"].indexOf(factor);
+                    if (factorIndex > -1) {
+                        gameState["grid"].splice(factorIndex, 1);
+                    }
+                });
+
+                // Changes server-side (gameState...) and local (currentTurn) turn 
+                currentTurn = opponent
+                gameState["current_turn"] = currentTurn;
+
+                // Emit the updated game state to the server
+                socket.emit('update_game_state', {
+                    "room": room,
+                    "gameState": gameState,
+                    "number": number,
+                    "factors": factors
+                });
+            };
+        };
+
+        // Listen for game state updates from the server
+        socket.on('game_state_updated', (data) => {
+            const updatedGameState = data["gameState"];
+            const numberClicked = data["number"];
+            const factors = data["factors"];
+
+            /* Updates turn indicator, which player can make a move, the score, and the visual board whose turn it is to click */
+            updateTurnIndicator(updatedGameState["current_turn"], currentPlayer);
+            enablePlayerTurn(updatedGameState, updatedGameState["current_turn"], currentPlayer);
+            displayScore(updatedGameState);
+            displayBoard(updatedGameState, numberClicked, factors);
+        });
+
+        /* Dynamically displays board based on numbers available */
+        function displayScore(gameState) {
+            // Gets backend player scores
+            let playerOneScore = gameState["scores"][1];
+            let playerTwoScore = gameState["scores"][2];
+
+            // Gets frontend player scores
+            let visiblePlayerOneScore = document.getElementById("playerOneScore");
+            let visiblePlayerTwoScore = document.getElementById("playerTwoScore");
+
+            // Updates frontend player scores to match backend
+            visiblePlayerOneScore.innerHTML = playerOneScore.toString();
+            visiblePlayerTwoScore.innerHTML = playerTwoScore.toString();
+        };
+
         /* Dynamically displays board based on numbers available */
         function displayBoard(gameState, numberClicked, factors) {
             // Gets frontend numbers and current turn
@@ -207,7 +282,7 @@
 
             console.log(`1score: ${playerOneScore} and 2: ${playerTwoScore}`);
 
-            if (numbers.length == 0) {
+            if (numbers.length === 0) {
                 /* Creates object with both player's scores */
                 const formData = new FormData();
                 formData.append("playerOneScore", playerOneScore);
@@ -234,88 +309,11 @@
                     console.log("Response HTML:", html); // Log the HTML response
                     // Replace the page content with the returned HTML
                     document.body.innerHTML = html;
+
+                    // Reapply the background style after content is replaced
+                    document.body.style.backgroundImage = "url('{{ url_for('static', filename='math_background.png') }}')";
                 });
             };
         };
-
-        /* Dynamically displays board based on numbers available */
-        function displayScore(gameState) {
-            // Gets backend player scores
-            let playerOneScore = gameState["scores"][1];
-            let playerTwoScore = gameState["scores"][2];
-
-            // Gets frontend player scores
-            let visiblePlayerOneScore = document.getElementById("playerOneScore");
-            let visiblePlayerTwoScore = document.getElementById("playerTwoScore");
-
-            // Updates frontend player scores to match backend
-            visiblePlayerOneScore.innerHTML = playerOneScore.toString();
-            visiblePlayerTwoScore.innerHTML = playerTwoScore.toString();
-        };
-
-        /* Removes the number from being clicked anymore */
-        function handleClick(event, gameState, currentTurn, currentPlayer) {
-            // Removes physical number
-            if (event.target.classList.contains('number')) {
-                // Gets the number that was clicked
-                const number = parseInt(event.target.dataset.value);
-
-                // Add the clicked number to the current player's score
-                gameState["scores"][currentPlayer] += number;
-                
-                // Remove the clicked number from the grid
-                const index = gameState["grid"].indexOf(number);
-                if (index > -1) {
-                    gameState["grid"].splice(index, 1);
-                }
-
-                // Generates list of factors of the clicked number
-                const factors = gameState["grid"].filter(value => number % value === 0);
-
-                // Add factors to opponent's score
-                factors.forEach((factor, index) => {
-                    // Adds factors to opponent's score
-                    gameState["scores"][opponent] += factor;
-
-                    // Removes factors from grid
-                    const factorIndex = gameState["grid"].indexOf(factor);
-                    if (factorIndex > -1) {
-                        gameState["grid"].splice(factorIndex, 1);
-                    }
-                });
-
-                // Changes server-side (gameState...) and local (currentTurn) turn 
-                currentTurn = opponent
-                gameState["current_turn"] = currentTurn;
-
-                // Emit the updated game state to the server
-                socket.emit('update_game_state', {
-                    "room": room,
-                    "gameState": gameState,
-                    "number": number,
-                    "factors": factors
-                });
-            };
-        };
-
-        // Listen for game state updates from the server
-        socket.on('game_state_updated', (data) => {
-            const updatedGameState = data["gameState"];
-            const numberClicked = data["number"];
-            const factors = data["factors"];
-
-            /* Updates game board, player scores, turn indicator, and enables player whose turn it is to click */
-            displayBoard(updatedGameState, numberClicked, factors);
-            displayScore(updatedGameState);
-            updateTurnIndicator(updatedGameState["current_turn"], currentPlayer);
-            enablePlayerTurn(updatedGameState, updatedGameState["current_turn"], currentPlayer);
-        });
-
-        /* Plays Click Sound Effect */
-        function playClickSound() {
-            const audio = document.getElementById("click-sound"); 
-            audio.play();
-        }
-
     </script>
-{% endblock %}
+</html>

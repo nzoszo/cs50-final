@@ -5,29 +5,49 @@
 {% endblock %}
 
 {% block main %}
-    <a href="/create_room">
-        <button class="create_room_button">Create Room!</button>
-    </a>
 
-    <form id="joinForm">
-        <input type="text" id="join_code" placeholder="Join Code" required>
-        <button type="submit">Join!</button>
-    </form>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Create/Join Room Container -->
+    <div class="room_options_container">
+        <button class="create_room_button" onclick="redirect()">Play!</button>
+
+        <form id="joinForm">
+            <input type="text" id="join_code" autocomplete="off" placeholder="Join Code" required>
+        </form>
+
+        <p class="how_to_join">Click play to create room or enter code to join friend's game!</p>
+    </div>
+
+    <!-- Instructions Container -->
+    <div class="thirty_six_instructions_container">
+        <h2 class="how_to_play">How To Play</h2>
+        <p><b>36</b> is a free online multiplayer game that challenges players in a strategic duel of critical thinking and math skills.</p>
+        <p>It consists of two players taking turns at removing numbers from a 6x6 grid listed from 1-36. When a player clicks a number, it is permanently removed from the grid and its value is added to his or her score. The catch, though, is that all the factors of the number clicked are also permanently removed from the grid and added to the opponent’s score.</p>
+        <p>For example, if a player clicks the number 15, it is permanently removed from the grid, and 15 gets added to his or her score. Its factors of 1, 3, and 5, however, are also permanently removed from the grid and are added to the opponent’s score.</p>
+        <p>But if a factor is removed from the grid, it can no longer be used as any points for an opponent.</p>
+        <p>To continue the example, if a player then clicks 30, none of its factors of 1, 3, 5, and 15 can be included in the opponent’s score.</p>
+        <p class="instructions_last_line">Once all numbers are removed from the grid, the game ends, and the player with the higher score is declared victorious and <b>(essentially)</b> smarter!
+        <b>Can you solve a winning approach?</b></p>
+    </div>
 
     <script>
-        // When join button is clicked (form submitted)
-        document.getElementById("joinForm").addEventListener("submit", function() {
+        function redirect() {
             // Stops form from submitting traditionally because we want to redirect
             event.preventDefault(); 
 
-            // Extracts join code
-            const joinCode = document.getElementById("join_code").value;
+            // Retrieves input of join code box
+            let joinCode = document.getElementById("join_code").value;
+            let url;
 
-            // Constructs url to be redirected to
-            const url = `http://127.0.0.1:5000/join_room/${joinCode}`;
+            if (joinCode.trim() !== "") { // Joins room user has inputted
+                url = `http://127.0.0.1:5000/join_room/${joinCode}`;
+            } else { // To create a room
+                url = `http://127.0.0.1:5000/create_room`;
+            }
 
-            // Redirect user to room
+            // Redirects user to either create_room or join_room/join_code
             window.location.href = url;
-        });
+        }
     </script>
 {% endblock %}

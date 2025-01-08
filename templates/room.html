@@ -2,16 +2,22 @@
 
 {% block main %}
 
-<h2>Room Code: {{ room_code }}</h2>
-<div id="waiting">Waiting for opponent...</div>
-<div id="game" style="display: none;">
-    <!-- Your existing game HTML here -->
-    <a class="game_toggle" id="thirty_six_option">36</a>
-    <a class="game_toggle" id="speed_option">Speed!</a>
-    <a class="game_toggle" id="word_world_option">Word World</a>
-</div>
-
 <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script src="https://kit.fontawesome.com/ed930a12f2.js" crossorigin="anonymous"></script>
+
+    <div class="waiting_room_container">
+        <h2 class="room_code">Room Code: <b>{{ room_code }}</b></h2>
+        <div id="waiting">Waiting for opponent...</div>
+        <div id="game" style="display: none;">
+            <!-- Your existing game HTML here -->
+            <p class="game_toggle unclickable">🕹️ Select a game</p>
+            <a class="game_toggle" id="thirty_six_option">🧠 36</a>
+            <a class="game_toggle" id="speed_option">⚡ Speed!</a>
+            <a class="game_toggle" id="word_world_option">📖 Word World</a>
+            <button id="play_button" disabled>Play</button>
+        </div>
+    </div>
+
 <script>
     // Initialize Socket.IO
     const socket = io();
@@ -52,32 +58,62 @@
         const clientRole = roles[socket.id];
         console.log(`You are Player ${clientRole}`);
 
-        if (clientRole == 1) {
-            document.getElementById('game').style.display = 'block';
+        // Initialize option select and play button
+        let selectedOption;
+        let play_button;
 
-            // Defines 36 and speed button options
+        if (clientRole == 1) {
+            // Opens up game options to player 1
+            document.getElementById('game').style.display = 'flex';
+
+            // Defines the game options and sets play_button to element
             let thirty_six_option = document.getElementById('thirty_six_option');
             let speed_option = document.getElementById('speed_option');
+            let word_world_option = document.getElementById('word_world_option');
+            play_button = document.getElementById('play_button');
 
-            // Selects game clicked
-
+            // Adds click event listeners for the game options
             thirty_six_option.addEventListener('click', () => {
-                console.log("CLICKED 36");
-                socket.emit('make_selection', {
-                    'room': room,
-                    'selection': 'thirty_six',
-                    'roles': roles
-                });
+                selectOption('thirty_six', thirty_six_option);
             });
 
             speed_option.addEventListener('click', () => {
-                console.log("CLICKED Speed");
-                socket.emit('make_selection', {
-                    'room': room,
-                    'selection': 'speed',
-                    'roles': roles
-                });
+                selectOption('speed', speed_option);
             });
+
+            word_world_option.addEventListener('click', () => {
+                selectOption('word_world', word_world_option);
+            });
+
+            // Adds click event listener for the play button
+            play_button.addEventListener('click', () => {
+                if (selectedOption) {
+                    console.log(`PLAYING ${selectedOption}`);
+                    socket.emit('make_selection', {
+                        'room': room,
+                        'selection': selectedOption,
+                        'roles': roles
+                    });
+                }
+            })
+        }
+
+        // Function to handle option selection
+        function selectOption(option, element) {
+            console.log(`SELECTED ${option}`);
+
+            // Clear active state from all options
+            document.querySelectorAll('.game_toggle').forEach(option => option.classList.remove('active'));
+
+            // Set the selected option and add active state
+            selectedOption = option;
+            element.classList.add('active');
+
+            // Enable the play button
+            if (play_button) {
+                play_button.disabled = false;
+                play_button.classList.add('enabled');
+            }
         }
     });
 

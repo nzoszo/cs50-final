@@ -188,7 +188,10 @@ def on_join(data):
         # Add the player to the room
         join_room(room)
         # Add the player's session ID to the room's player list
-        game_rooms[room]['players'].append(request.sid)
+        player = db.execute("SELECT username FROM users WHERE id = (?)", session["user_id"])[0]['username']
+        print(player)
+        game_rooms[room]['players'].append(player)
+        print(f"this is players in game_rooms: {game_rooms[room]['players']}")
         
         # Assign role based on join order
         if len(game_rooms[room]['players']) == 1:
@@ -211,6 +214,7 @@ def on_join(data):
 def initialize_game_state():
     return {
         'grid': list(range(1, 37)),
+        
         'scores': {'player1': 0, 'player2': 0},
         'current_turn': 'player1'
     }

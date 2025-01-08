@@ -16,6 +16,227 @@ overflow-x: hidden;
 max-width: 100%;
 }
 
+a {
+    text-decoration: none;
+}
+
+/* Center the container */
+.thirty_six_title_container,
+.room_options_container, .thirty_six_instructions_container,
+.waiting_room_container, .game_container,
+.end_screen_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 20px auto;
+    user-select: none;
+}
+
+/* Title styling */
+.thirty_six_title, .thirty_six_subtitle, 
+.game_thirty_six_title {
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold;
+}
+
+.thirty_six_title {
+    margin-top: 25px;
+    font-size: 3rem;
+    color: white;
+    text-decoration: none; /* Remove underline */
+}
+
+.thirty_six_subtitle {
+    margin-top: 10px;
+    font-size: 2rem;
+    color: rgba(245, 245, 245, 0.937)
+}
+
+/* Basic centered grey-backgrounded box with purple outline design for all non-title containers */
+.room_options_container, 
+.thirty_six_instructions_container,
+.waiting_room_container,
+.end_screen_container {
+    background-color: rgba(255, 255, 255, 0.79);
+    padding: 20px;
+    border: 4px solid #1E076B;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Room options container styling */
+.room_options_container {
+    width: 300px;
+    gap: 12px;
+}
+
+/* Input and button styling */
+#create_room_button,
+#join_code, .how_to_play, 
+.thirty_six_instructions_container p,
+.room_code, #waiting {
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+}
+
+.create_room_button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.4rem; 
+    font-weight: bold;
+    background-color: #1E076B;
+    color: white;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.create_room_button:hover {
+    background-color: #3A2B91;
+}
+
+#join_code, #join_code:not(:focus) {
+    padding: 10px;
+    font-size: 1rem;
+    text-align: center; /* Centers text horizontally */
+    vertical-align: middle; /* Ensures proper alignment */
+    border: 2px solid transparent;
+    border-radius: 20px;
+    transition: border-color 0.3s ease; /* Smooth transition */
+}
+
+#join_code:focus {
+    border: 2px solid #1E076B;
+    outline: none; 
+}
+
+/* How to Join Text Styling */
+.how_to_join {
+    font-size: .94rem;
+    font-weight: bold;
+    color: #1E076B;
+    text-align: center;
+    max-width: 100%; /* Prevents it from overflowing */
+    line-height: 1.4; /* Adds spacing for readability */
+    margin-bottom: 5px;
+    padding: 0 10px; /* Optional: Adds padding on the sides for better spacing */
+}
+
+/* Instructions Container Styling */
+.thirty_six_instructions_container {
+    user-select: text;
+    width: 1200px;
+    gap: 2px;
+    margin-top: 20px; /* Adds spacing from the room options container */
+}
+
+/* Title for Instructions */
+.how_to_play {
+    font-size: 1.5rem;              /* Slightly larger font size for the title */
+    font-weight: bold;
+    color: #1E076B;
+    text-align: center;
+}
+
+/* Paragraph styling for instructions text */
+.thirty_six_instructions_container p {
+    font-size: 1rem;                /* Standard font size for readability */
+    color: #3A2B91;
+    text-align: center;
+    line-height: 1.6;               /* Spacing between lines for better readability */
+    max-width: 90%;                 /* Prevents the text from stretching too wide */
+}
+
+.instructions_last_line {
+    margin-bottom: 0;
+}
+
+.waiting_room_container {
+    user-select: text;
+    width: 400px;
+    gap: 2px;
+    margin-top: 20px; /* Adds spacing from the room options container */
+}
+
+.room_code {
+    color: #3A2B91;
+    margin-top: 5px;
+}
+
+#waiting {
+    color: #3A2B91;
+    font-size: 1.3rem
+}
+
+
+#game {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center the items horizontally */
+    gap: 10px; /* Add space between rows */
+    padding: 5px; /* Add padding around the container */
+    width: 100%;
+}
+
+.game_toggle {
+    display: block;
+    width: 100%; /* Adjust the width as needed */
+    padding: 15px 20px; /* Add padding for the button */
+    text-align: center; /* Center text */
+    text-decoration: none; /* Remove underline from links */
+    background-color: lightslategray; /* Button background color */
+    color: white; /* Text color */
+    border-radius: 8px; /* Rounded corners */
+    font-size: 18px; /* Adjust font size */
+    font-weight: bold; /* Make text bold */
+    transition: background-color 0.3s ease; /* Smooth color transition */
+}
+
+
+.game_toggle:hover {
+    background-color: #3A2B91; /* Darker background on hover */
+    cursor: pointer; /* Show pointer cursor on hover */
+}
+
+.game_toggle.active {
+    background-color: #1E076B; /* Active state */
+    cursor: pointer; /* Clickable cursor for active */
+}
+
+/* Disable click interaction for unclickable elements */
+.unclickable {
+    pointer-events: none;
+    color: #aaa; /* Optional: Make it visually distinct if needed */
+    background-color: #e0e0e0; /* Optional: Different shade to show it's disabled */
+    cursor: default;
+}
+
+#play_button {
+    width: 100%;
+    padding: 15px 20px;
+    background-color: #ccc; /* Grayed out by default */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: not-allowed; /* Unclickable by default */
+    transition: background-color 0.3s ease;
+}
+
+#play_button.enabled {
+    background-color: #1E076B; /* Enabled state */
+    cursor: pointer; /* Clickable cursor for active state */
+}
+
+#play_button.enabled:hover {
+    background-color: #3A2B91;
+}
+
 table {
 border-collapse: collapse;
 width: 100%;
@@ -31,42 +252,6 @@ text-align: center;
 th {
 background-color: #f7f7f7; /* light gray background */
 }
-
-/* Style the instruction screen to be centered */
-/* #instruction-screen {
-position: absolute;
-top: 50%;
-left: 50%;
-display: none;
-transform: translate(-50%, -50%);
-background-color: #fff;
-padding: 20px;
-border: 1px solid #ddd;
-border-radius: 10px;
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-width: 50%;
-height: 80%;
-z-index: 100;
-} */
-
-/* Style the instruction and game-type elements */
-/* #instruction, #game-type {
-display: inline-block; /* changed from inline to inline-block */
-/* font-size: 24px; */
-/* text-align: center; added to center the text */
-/* margin: 0 20px; added to add some space between the elements */
-/* } */
-
-/* #instruction {
-font-size: 2rem;
-font-weight: 700;
-}
-
-#game-type {
-font-size: 2rem;
-font-weight: 700;
-} */
-
 
 th#playerOne {
 border-bottom: 1px solid;
@@ -125,11 +310,22 @@ color: red;
 border-color: #ddd !important;
 }
 
+#returnButton {
+    display: inline-block; /* Makes the divs inline */
+    position: absolute;
+    left: 4%;
+    top: 7%;
+    font-size: 18px;
+    color: grey;
+}
+
 /* Style the turn display */
 #turnDisplay {
+display: inline-block; /* Makes the divs inline */
+margin-top: 20px;
 font-size: 24px;
 font-weight: bold;
-margin-bottom: 20px;
+margin-bottom: 5px;
 color: #333; /* dark gray text */
 }
 
@@ -153,6 +349,58 @@ color: #333; /* dark gray text */
         opacity: 0;
         transform: translateY(-40px); /* End position */
     }
+}
+
+/* End screen styles */
+.end_screen_container {
+    text-align: center;
+    width: 500px;
+    padding: 50px;
+    color: #fff; /* Make sure the text is readable */
+}
+
+.end_screen_header {
+    font-family: 'Nunito', sans-serif;
+    font-size: 50px;
+    color: #1E076B; /* Purple color */
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.end_screen_text, .end_screen_text .player,
+.end_screen_text .opponent {
+    font-family: 'Nunito', sans-serif;
+    font-size: 30px;
+    margin: 10px 0;
+}
+
+.end_screen_text {
+    color: #1E076B; /* Purple color */
+}
+
+.end_screen_text .player {
+    font-weight: bold;
+    color: green; /* Purple color */
+}
+
+.end_screen_text .opponent {
+    font-weight: bold;
+    color: red; /* Purple color */
+}
+
+.new_game {
+    background-color: #1E076B;
+    color: #fff;
+    padding: 15px 30px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.new_game:hover {
+    background-color: #3A2B91; /* Slightly lighter purple for hover effect */
 }
 
 /* Speed */

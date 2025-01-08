@@ -18,9 +18,13 @@
 
     </head>
 
-    <body>
+    <body style="background-image: url('{{ url_for('static', filename='math_background.png') }}');">
+        <div class="thirty_six_title_container">
+            <a class="thirty_six_title" href="/">36!</a>
+            <p class="thirty_six_subtitle">Outplay. Outsmart. Outmath.</p>
+        </div>
 
-        <nav class="bg-light border navbar navbar-expand-md navbar-light">
+        <!-- <nav class="bg-light border navbar navbar-expand-md navbar-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="/"><span class="purple">Enzo's </span><span class="gold">Games</span></a>
                 <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
@@ -47,9 +51,9 @@
                     {{ get_flashed_messages() | join(" ") }}
                 </div>
             </header>
-        {% endif %}
+        {% endif %} -->
 
-        <main class="container py-5 text-center">
+        <main>
             {% block main %}{% endblock %}
         </main>
 
